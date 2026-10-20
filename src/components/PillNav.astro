@@ -1,0 +1,27 @@
+---
+// Onglets pour passer d'une page générée à une autre (d'une station à l'autre).
+interface Props {
+  label: string;
+  links: { href: string; label: string; current?: boolean; couleur?: string }[];
+}
+const { label, links } = Astro.props;
+---
+
+<nav aria-label={label} class="mt-8 border-b border-encre">
+  <ul class="-mb-px flex flex-wrap">
+    {
+      links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            aria-current={l.current ? "page" : undefined}
+            class="repere flex items-center gap-2 border border-transparent px-4 py-2.5 text-graphite transition hover:text-encre aria-[current=page]:border-encre aria-[current=page]:border-b-panneau aria-[current=page]:bg-panneau aria-[current=page]:text-encre"
+          >
+            {l.couleur && <span aria-hidden="true" class="h-2.5 w-2.5" style={`background:${l.couleur}`} />}
+            {l.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

@@ -1,0 +1,22 @@
+[
+ {
+  "slug": "mulhouse",
+  "station": "Mulhouse",
+  "numero": "68224006",
+  "serie": "MTX268224006",
+  "commune": "Mulhouse",
+  "latitude": 47.75,
+  "longitude": 7.288833,
+  "altitude": 245
+ },
+ {
+  "slug": "colmar-meyenheim",
+  "station": "Colmar-Meyenheim",
+  "numero": "68205001",
+  "serie": "MTX268205001",
+  "commune": "Oberentzen",
+  "latitude": 47.928667,
+  "longitude": 7.407667,
+  "altitude": 207
+ }
+]

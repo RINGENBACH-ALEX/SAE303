@@ -1,0 +1,30 @@
+---
+// Logo : un thermomètre gradué dont le mercure passe du bleu (Colmar-Meyenheim)
+// à l'orange (Mulhouse), les deux couleurs de stations du notebook.
+// Décoratif : le nom du site est donné par le texte du lien qui l'entoure.
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<svg aria-hidden="true" viewBox="0 0 24 48" class={className} fill="none">
+  <defs>
+    <linearGradient id="logo-mercure" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#0072B2" />
+      <stop offset="1" stop-color="#D55E00" />
+    </linearGradient>
+  </defs>
+  <!-- tube et réservoir -->
+  <path
+    d="M8 7a4 4 0 0 1 8 0v22.6a8 8 0 1 1-8 0Z"
+    stroke="currentColor"
+    stroke-width="2.2"
+    stroke-linejoin="round"
+  />
+  <!-- mercure -->
+  <rect x="10.4" y="12" width="3.2" height="22" rx="1.6" fill="url(#logo-mercure)" />
+  <circle cx="12" cy="36.5" r="5" fill="#0072B2" />
+  <!-- graduations -->
+  <path d="M18.5 10h3M18.5 15h2M18.5 20h3M18.5 25h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+</svg>

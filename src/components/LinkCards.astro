@@ -1,0 +1,35 @@
+---
+// Liste de liens en lignes de registre (numéro, titre, description, flèche).
+interface Props {
+  label: string;
+  links: { href: string; title: string; text: string; tag?: string; couleur?: string }[];
+}
+const { label, links } = Astro.props;
+---
+
+<nav aria-label={label} class="mt-6 border-t-2 border-encre">
+  <ul>
+    {
+      links.map((l, i) => (
+        <li class="border-b border-trait">
+          <a
+            href={l.href}
+            class="group grid grid-cols-[auto_1fr_auto] items-center gap-x-5 gap-y-1 px-1 py-5 transition hover:bg-panneau sm:px-3"
+          >
+            <span
+              aria-hidden="true"
+              class="h-10 w-2 self-stretch"
+              style={l.couleur ? `background:${l.couleur}` : "background:var(--color-encre)"}
+            />
+            <span>
+              <span class="repere block text-graphite">{l.tag ?? String(i + 1).padStart(2, "0")}</span>
+              <span class="titre mt-1 block text-2xl font-semibold group-hover:underline">{l.title}</span>
+              <span class="mt-1 block text-sm text-graphite">{l.text}</span>
+            </span>
+            <span aria-hidden="true" class="titre text-3xl transition group-hover:translate-x-1">→</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

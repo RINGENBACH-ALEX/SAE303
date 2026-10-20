@@ -1,26 +1,118 @@
 ---
+// Polices auto-hébergées (Fontsource) : pas d'appel à Google Fonts, rendu plus rapide
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource-variable/fraunces/opsz-italic.css";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/400-italic.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
 import "../styles/global.css";
+import Logo from "../components/Logo.astro";
+import { stations } from "../lib/donnees";
+import { couleurStation, type Station } from "../lib/palette";
+import { NOTEBOOK, DEPOT } from "../lib/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title,
+  description = "Les températures maximales à Mulhouse et Colmar-Meyenheim de 2003 à 2022 : une enquête en données à partir des séries de Météo-France.",
+} = Astro.props;
+
+const liens: { href: string; label: string; couleur?: string }[] = [
+  { href: "/", label: "L'enquête" },
+  ...stations.map((s) => ({ href: `/stations/${s.slug}/`, label: s.station, couleur: couleurStation[s.station as Station] })),
+  { href: "/methode/", label: "Méthode & données" },
+];
+const path = Astro.url.pathname.endsWith("/") ? Astro.url.pathname : Astro.url.pathname + "/";
+const actif = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>Astro Basics</title>
+    <meta name="theme-color" content="#ffffff" />
+    <title>{title ? `${title} · ` : ""}Relevé — le climat du Sud-Alsace en données</title>
   </head>
-  <body>
-    <slot />
+
+  <body class="min-h-screen overflow-x-hidden">
+    <a
+      href="#contenu"
+      class="repere sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-encre focus:px-4 focus:py-3 focus:text-papier"
+    >
+      Aller au contenu
+    </a>
+
+    <header class="sticky top-0 z-30 border-b border-encre bg-papier">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 px-4 sm:px-6">
+        <a href="/" class="group flex items-center gap-2.5 py-2.5">
+          <Logo class="h-12 w-6 shrink-0 text-encre transition group-hover:-translate-y-0.5" />
+          <span class="flex flex-col leading-none">
+            <span class="titre text-2xl font-bold tracking-tight group-hover:underline">Relevé</span>
+            <span class="repere mt-1 hidden text-[10px] text-graphite sm:block">Le climat du Sud-Alsace en données</span>
+          </span>
+        </a>
+        <nav aria-label="Navigation principale">
+          <ul class="flex flex-wrap">
+            {
+              liens.map((l) => (
+                <li>
+                  <a
+                    href={l.href}
+                    aria-current={actif(l.href) ? "page" : undefined}
+                    class="flex items-center gap-2 border-b-[3px] border-transparent px-3 py-3.5 text-sm font-medium text-graphite transition hover:text-encre aria-[current=page]:border-sapin aria-[current=page]:text-encre"
+                  >
+                    {l.couleur && <span aria-hidden="true" class="h-2 w-2 rounded-full" style={`background:${l.couleur}`} />}
+                    {l.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenu" tabindex="-1" class="focus:outline-none">
+      <slot />
+    </main>
+
+    <footer aria-label="Pied de page" class="mt-24 bg-encre text-papier">
+      <div class="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div>
+          <p class="titre text-3xl font-bold">Relevé</p>
+          <p class="mt-3 max-w-sm text-sm text-papier/80">
+            Des enquêtes en données sur le climat du Sud-Alsace, à partir des mesures publiques de Météo-France.
+          </p>
+        </div>
+        <div>
+          <p class="repere text-papier/70">À propos</p>
+          <ul class="mt-3 space-y-1.5 text-sm">
+            <li>Textes et graphiques : Alex Ringenbach &amp; Melvyn Philippon</li>
+            <li>Réalisé dans le cadre de la SAE 303 — BUT MMI, Montbéliard</li>
+          </ul>
+        </div>
+        <div>
+          <p class="repere text-papier/70">Vérifier</p>
+          <ul class="mt-3 space-y-1.5 text-sm">
+            <li><a class="lien" href="/methode/">Méthode et données téléchargeables</a></li>
+            <li><a class="lien" href={NOTEBOOK}>Notebook de l'analyse (Observable)</a></li>
+            <li><a class="lien" href={DEPOT}>Code source (GitHub)</a></li>
+            <li>Données Météo-France, Licence Ouverte 2.0</li>
+          </ul>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>
-
-<style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-  }
-</style>

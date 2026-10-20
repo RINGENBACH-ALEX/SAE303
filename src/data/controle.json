@@ -1,0 +1,34 @@
+[
+ {
+  "station": "Mulhouse",
+  "source": "SH_TX",
+  "attendues": 240,
+  "presentes": 240,
+  "manquantes": 0,
+  "qualite1": 240
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "source": "SH_TX",
+  "attendues": 240,
+  "presentes": 240,
+  "manquantes": 0,
+  "qualite1": 240
+ },
+ {
+  "station": "Mulhouse",
+  "source": "SQR_TX",
+  "attendues": 7305,
+  "presentes": 7305,
+  "manquantes": 28,
+  "qualite1": 7305
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "source": "SQR_TX",
+  "attendues": 7305,
+  "presentes": 7305,
+  "manquantes": 0,
+  "qualite1": 7305
+ }
+]

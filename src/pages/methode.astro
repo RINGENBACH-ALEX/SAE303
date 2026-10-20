@@ -1,0 +1,329 @@
+---
+// Page Méthode : ce qui est publié peut être vérifié.
+import Layout from "../layouts/Layout.astro";
+import { controle, stations, joursCommuns, entier } from "../lib/donnees";
+import { fichiers, geojson } from "../lib/fichiers";
+import { couleurStation, divergente, type Station } from "../lib/palette";
+import { NOTEBOOK, DEPOT } from "../lib/site";
+
+const sources = [
+  {
+    jeu: "Longues Séries Homogénéisées (LSH) — SH_TX",
+    contenu: "Moyennes mensuelles homogénéisées de la température maximale quotidienne",
+    fichiers: "SH_MTX268224006.csv, SH_MTX268205001.csv (archive SH_TX_metropole.zip)",
+    date: "Fichiers produits par Météo-France le 13/03/2025 ; période homogénéisée jusqu'à décembre 2022",
+    url: "https://www.data.gouv.fr/datasets/donnees-changement-climatique-lsh-longues-series-homogeneisees/",
+  },
+  {
+    jeu: "Séries Quotidiennes de Référence (SQR) — SQR_TX",
+    contenu: "Température maximale de chaque jour, associée aux séries homogénéisées",
+    fichiers: "SQR_MTX268224006.csv, SQR_MTX268205001.csv (archive SQR_TX_metropole.zip)",
+    date: "Fichiers produits par Météo-France le 13/03/2025 ; période de référence jusqu'au 31/12/2022",
+    url: "https://www.data.gouv.fr/datasets/donnees-changement-climatique-sqr-series-quotidiennes-de-reference/",
+  },
+  {
+    jeu: "Informations sur les stations (métadonnées)",
+    contenu: "Identifiant, nom, coordonnées, altitude, date d'ouverture",
+    fichiers: "Liste des stations d'observation (métropole et outre-mer)",
+    date: "Version du 08/07/2025",
+    url: "https://www.data.gouv.fr/datasets/informations-sur-les-stations-metadonnees/",
+  },
+];
+
+const routes = [
+  {
+    id: "route-a",
+    lettre: "A",
+    nom: "Au build",
+    ou: "Graphique 3 : comparaison des deux stations (notebook § 4.2)",
+    pourquoi:
+      "C'est le graphique de la révélation : il est le même pour tous les lecteurs et n'a rien à filtrer, puisqu'il montre justement les deux stations ensemble. Plot le dessine une fois au build (jsdom) : le navigateur reçoit un SVG prêt, sans JavaScript, lisible même si les scripts sont bloqués.",
+  },
+  {
+    id: "route-b",
+    lettre: "B",
+    nom: "Chez le lecteur",
+    ou: "Graphique 1 (barres YlOrRd pour Mulhouse, Blues pour Colmar-Meyenheim, filtre station), graphique 2 (évolution, filtre station), graphique 4 (anomalies, filtre stations affichées), graphique 5 (carte, filtre année)",
+    pourquoi:
+      "Ici, oui, ça doit bouger chez le lecteur : il choisit une station pour comparer sur la même échelle, isole une courbe d'anomalies, ou cherche « son » année sur la carte (le sélecteur Inputs.select du notebook). Comme la carte GeoJSON côté client du TP7, un <select> recalcule les options et Plot redessine, sans recharger la page. Les données utiles sont petites (40 moyennes annuelles, deux stations, un contour) : elles partent avec le script, chargé seulement à l'approche des graphiques. Le build rend la valeur par défaut (Mulhouse, 2022) en repli sans JavaScript.",
+  },
+  {
+    id: "route-c",
+    lettre: "C",
+    nom: "Une page par valeur",
+    ou: "Les fiches station : /stations/mulhouse/ et /stations/colmar-meyenheim/, avec les graphiques 1 et 2 du notebook pour chaque station",
+    pourquoi:
+      "Deux valeurs seulement, stables, que l'on a envie de citer ou de partager : chaque station mérite une adresse propre. getStaticPaths() génère une page HTML par station au build ; pas besoin d'interaction côté lecteur.",
+  },
+];
+
+const traitements = [
+  "Extraction, dans les archives nationales, des 4 fichiers des deux stations (séries MTX268224006 et MTX268205001) ; lignes de commentaire « # » retirées.",
+  "Filtrage sur 2003–2022 inclus et sur les codes qualité 1 (Q_HOM = 1 pour les séries mensuelles, Q_SQR = 1 pour les quotidiennes) : seules les données homogénéisées ou de référence sont gardées.",
+  "Moyenne annuelle des TX : chaque moyenne mensuelle est pondérée par le nombre de jours du mois, puis la somme est divisée par le nombre de jours de l'année (365 ou 366). Une année n'est calculée que si ses 12 mois sont présents (c'est le cas des 20 années).",
+  "Référence propre à chaque station : moyenne de ses 20 moyennes annuelles. Anomalie = moyenne de l'année − référence. Ce n'est pas une « normale » climatologique (calculée sur 30 ans).",
+  `Données quotidiennes : seules les journées renseignées aux deux stations sont comparées (${entier(joursCommuns)} jours). Les 28 jours manquants de février 2015 à Mulhouse ne sont ni remplacés ni estimés : ils sont retirés des deux côtés.`,
+  "Journées à 30 °C ou plus : comptées sur les journées communes aux deux stations, pour chaque décennie ; le nombre de jours renseignés (dénominateur) est indiqué à côté.",
+  "Arrondi à deux décimales au moment d'écrire les fichiers, après tous les calculs.",
+];
+
+const limites = [
+  ["Période courte", "20 ans ne suffisent pas à établir une tendance climatique. Nous comparons deux décennies, sans calculer de pente ni de significativité."],
+  ["Deux points de mesure", "Une station décrit son abri et ses environs immédiats. Elle ne représente ni toute la ville de Mulhouse, ni tout le Haut-Rhin."],
+  ["Ville contre campagne", "L'écart entre stations peut venir de l'altitude (38 m), de l'exposition, du sol ou de l'histoire des sites : nos données ne permettent pas d'isoler un effet d'îlot de chaleur urbain."],
+  ["Indicateur unique", "La moyenne annuelle des maximales efface les saisons, les nuits (température minimale) et les extrêmes : seul le décompte des journées à 30 °C ou plus en donne une idée."],
+  ["Homogénéisation", "Les séries homogénéisées corrigent les ruptures (changement d'abri, de capteur, de site) par des méthodes statistiques : ce sont des séries reconstruites, pas des relevés bruts."],
+  ["Position des stations", "La carte montre la position actuelle des stations ; d'éventuels déplacements passés ne sont pas représentés (ils sont pris en compte par l'homogénéisation)."],
+  ["Couleurs", "Le bleu désigne à la fois Colmar-Meyenheim (courbes) et les anomalies négatives (carte), comme dans le notebook : sur la carte, chaque point porte donc le nom de sa station."],
+];
+---
+
+<Layout
+  title="Méthode"
+  description="Sources, licences, traitements, limites et données téléchargeables de l'enquête sur les températures maximales à Mulhouse et Colmar-Meyenheim."
+>
+  <div class="mx-auto max-w-4xl px-4 pt-12 sm:px-6 sm:pt-16">
+    <p class="repere text-sapin">Méthode</p>
+    <h1 class="titre mt-4 text-4xl font-bold leading-[1.05] sm:text-6xl">Comment nous avons fait</h1>
+    <p class="mt-8 text-lg leading-relaxed">
+      Sources, calculs, choix de représentation, limites&nbsp;: cette page décrit comment chaque chiffre de l'enquête a été
+      obtenu. Les fichiers utilisés par les graphiques sont téléchargeables en bas de page, et l'analyse complète est
+      dans le <a class="lien font-bold" href={NOTEBOOK}>notebook Observable</a>.
+    </p>
+
+    <nav aria-label="Sommaire de la page" class="mt-10 border-y-2 border-encre bg-panneau px-5 py-5">
+      <ol class="repere grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+        <li><a class="lien" href="#sources">1. Sources, dates et licences</a></li>
+        <li><a class="lien" href="#traitements">2. Traitements appliqués</a></li>
+        <li><a class="lien" href="#controle">3. Contrôle de qualité</a></li>
+        <li><a class="lien" href="#routes">4. Routes d'export des graphiques</a></li>
+        <li><a class="lien" href="#limites">5. Limites et biais</a></li>
+        <li><a class="lien" href="#design">6. Couleurs et accessibilité</a></li>
+        <li><a class="lien" href="#donnees">7. Données téléchargeables</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1 -->
+    <section id="sources" aria-labelledby="titre-sources" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-sources" class="titre text-3xl font-semibold sm:text-4xl">1. Sources, dates et licences</h2>
+      <p class="mt-4 leading-relaxed">
+        Toutes les températures viennent de <strong>Météo-France</strong>, via le défi « données changement climatique »
+        de data.gouv.fr, sous <strong>Licence Ouverte 2.0 (Etalab)</strong>&nbsp;: réutilisation libre, attribution
+        obligatoire. Fichiers téléchargés le 20/10/2026.
+      </p>
+      <div class="mt-6 space-y-4">
+        {
+          sources.map((s) => (
+            <article class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
+              <h3 class="titre text-lg font-semibold">{s.jeu}</h3>
+              <dl class="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[9rem_1fr]">
+                <dt class="text-graphite">Contenu</dt><dd>{s.contenu}</dd>
+                <dt class="text-graphite">Fichiers</dt><dd>{s.fichiers}</dd>
+                <dt class="text-graphite">Date</dt><dd>{s.date}</dd>
+                <dt class="text-graphite">Producteur</dt><dd>Météo-France — Licence Ouverte 2.0</dd>
+                <dt class="text-graphite">Page</dt><dd><a class="lien break-all" href={s.url}>{s.url}</a></dd>
+              </dl>
+            </article>
+          ))
+        }
+        <article class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
+          <h3 class="titre text-lg font-semibold">Contour du Haut-Rhin</h3>
+          <p class="mt-2 text-sm">
+            <a class="lien" href="https://github.com/gregoiredavid/france-geojson">france-geojson</a> (Grégoire David),
+            d'après IGN Admin Express (Licence Ouverte) et le Code officiel géographique de l'Insee ; coordonnées
+            arrondies au millième de degré (≈ 100 m).
+          </p>
+        </article>
+      </div>
+      <h3 class="titre mt-10 text-xl font-semibold">Stations retenues</h3>
+      <div class="mt-3 overflow-x-auto">
+        <table class="tableau">
+          <thead>
+            <tr><th scope="col">Station</th><th scope="col">Numéro</th><th scope="col">Série</th><th scope="col">Commune</th><th scope="col">Altitude</th></tr>
+          </thead>
+          <tbody>
+            {
+              stations.map((s) => (
+                <tr>
+                  <th scope="row">
+                    <span aria-hidden="true" class="mr-2 inline-block h-2.5 w-2.5" style={`background:${couleurStation[s.station as Station]}`} />
+                    {s.station}
+                  </th>
+                  <td>{s.numero}</td><td>{s.serie}</td><td>{s.commune}</td><td>{s.altitude} m</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="traitements" aria-labelledby="titre-traitements" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-traitements" class="titre text-3xl font-semibold sm:text-4xl">2. Traitements appliqués</h2>
+      <ol class="mt-6 list-decimal space-y-3 pl-6 leading-relaxed">
+        {traitements.map((t) => <li>{t}</li>)}
+      </ol>
+      <p class="mt-6 leading-relaxed">
+        Les calculs sont ceux du <a class="lien font-bold" href={NOTEBOOK}>notebook</a>, repris à l'identique dans
+        <a class="lien" href={`${DEPOT}/blob/main/scripts/preparer-donnees.mjs`}><code>scripts/preparer-donnees.mjs</code></a>.
+        Les fichiers bruts du défi ne sont pas dans le dépôt&nbsp;: pour tout refaire, télécharger les deux archives,
+        en extraire les quatre CSV des stations et lancer <code>node scripts/preparer-donnees.mjs &lt;dossier&gt;</code>.
+        Les textes du site ne recopient aucun nombre à la main&nbsp;: ils sont calculés au build à partir de ces fichiers.
+      </p>
+    </section>
+
+    <!-- 3 -->
+    <section id="controle" aria-labelledby="titre-controle" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-controle" class="titre text-3xl font-semibold sm:text-4xl">3. Contrôle de qualité</h2>
+      <p class="mt-4 leading-relaxed">Sur 2003–2022, chaque station doit avoir 240 valeurs mensuelles et 7 305 valeurs quotidiennes.</p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="tableau">
+          <thead>
+            <tr>
+              <th scope="col">Station · source</th><th scope="col">Attendues</th><th scope="col">Présentes</th>
+              <th scope="col">Valeurs manquantes</th><th scope="col">Code qualité 1</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              controle.map((c) => (
+                <tr>
+                  <th scope="row">{c.station} · {c.source}</th>
+                  <td>{entier(c.attendues)}</td><td>{entier(c.presentes)}</td>
+                  <td>{entier(c.manquantes)}</td><td>{entier(c.qualite1)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="routes" aria-labelledby="titre-routes" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-routes" class="titre text-3xl font-semibold sm:text-4xl">4. Routes d'export des graphiques</h2>
+      <p class="mt-4 leading-relaxed">
+        La question qui tranche&nbsp;: <strong>est-ce que ça doit bouger chez le lecteur&nbsp;?</strong> Si non, le
+        graphique est calculé une fois pour toutes. Chaque figure du site porte une pastille qui renvoie ici.
+      </p>
+      <div class="mt-6 space-y-4">
+        {
+          routes.map((r) => (
+            <article id={r.id} aria-labelledby={`${r.id}-titre`} class="scroll-mt-24 border border-trait border-t-2 border-t-encre bg-panneau p-5 sm:p-6">
+              <h3 id={`${r.id}-titre`} class="titre flex items-center gap-3 text-xl font-semibold">
+                <span aria-hidden="true" class="grid h-8 w-8 place-items-center bg-encre font-mono text-sm text-papier">{r.lettre}</span>
+                Route {r.lettre} · {r.nom}
+              </h3>
+              <p class="mt-3 text-sm text-graphite"><strong class="text-encre">Utilisée pour&nbsp;:</strong> {r.ou}</p>
+              <p class="mt-2 leading-relaxed">{r.pourquoi}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="limites" aria-labelledby="titre-limites" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-limites" class="titre text-3xl font-semibold sm:text-4xl">5. Limites et biais identifiés</h2>
+      <dl class="mt-6 space-y-4">
+        {
+          limites.map(([t, d]) => (
+            <div class="border-l-2 border-sapin pl-4">
+              <dt class="font-bold">{t}</dt>
+              <dd class="mt-1 leading-relaxed text-graphite">{d}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <!-- 6 -->
+    <section id="design" aria-labelledby="titre-design" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-design" class="titre text-3xl font-semibold sm:text-4xl">6. Couleurs et accessibilité</h2>
+      <div class="mt-6 grid gap-4 sm:grid-cols-2">
+        <div class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
+          <h3 class="titre text-lg font-semibold">Palette de charte</h3>
+          <p class="mt-1 text-sm text-graphite">Blanc, encre et vert sapin des Vosges : aucune teinte chaude ni bleue. Typographie Fraunces, IBM Plex Sans et IBM Plex Mono.</p>
+          <ul class="mt-4 flex flex-wrap gap-3 text-xs">
+            {
+              [["Papier", "#ffffff"], ["Panneau", "#f4f3ee"], ["Encre", "#15171a"], ["Graphite", "#565b58"], ["Sapin", "#23493c"]].map(([n, c]) => (
+                <li class="flex items-center gap-2"><span aria-hidden="true" class="h-6 w-6 border border-trait" style={`background:${c}`} />{n} <code>{c}</code></li>
+              ))
+            }
+          </ul>
+        </div>
+        <div class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
+          <h3 class="titre text-lg font-semibold">Palette de données</h3>
+          <p class="mt-1 text-sm text-graphite">
+            Les couleurs du notebook : stations en Okabe-Ito (lisible par les daltoniens), moyennes annuelles en YlOrRd (Mulhouse) et Blues (Colmar-Meyenheim),
+            anomalies de la carte en divergente centrée sur 0.
+          </p>
+          <ul class="mt-4 flex flex-wrap gap-3 text-xs">
+            {
+              stations.map((s) => (
+                <li class="flex items-center gap-2"><span aria-hidden="true" class="h-6 w-6" style={`background:${couleurStation[s.station as Station]}`} />{s.station}</li>
+              ))
+            }
+          </ul>
+          <p class="mt-4 text-xs text-graphite">Moyennes annuelles : YlOrRd (Mulhouse) et Blues (Colmar-Meyenheim)</p>
+          <div aria-hidden="true" class="mt-1 h-4" style="background:linear-gradient(to right,#ffffcc,#fed976,#fd8d3c,#e31a1c,#800026)"></div>
+          <div aria-hidden="true" class="mt-1 h-4" style="background:linear-gradient(to right,#f7fbff,#c6dbef,#6baed6,#2171b5,#08306b)"></div>
+          <p class="mt-3 text-xs text-graphite">Anomalies (divergente)</p>
+          <div aria-hidden="true" class="mt-1 h-4" style={`background:linear-gradient(to right,${divergente.join(",")})`}></div>
+          <p class="mt-1 flex justify-between text-xs text-graphite"><span>plus frais</span><span>plus chaud</span></p>
+        </div>
+      </div>
+      <ul class="mt-6 list-disc space-y-2 pl-6 leading-relaxed">
+        <li>Chaque graphique est une <code>&lt;figure&gt;</code> nommée par son titre (<code>aria-labelledby</code>), avec un <code>&lt;figcaption&gt;</code> (lecture, source).</li>
+        <li>Le SVG est exposé comme une image (<code>role="img"</code>) avec une alternative textuelle (<code>aria-label</code>) qui donne les valeurs clés, recalculée à chaque changement de filtre.</li>
+        <li>Les valeurs exactes de chaque graphique sont disponibles dans un tableau (« Voir les valeurs du graphique »).</li>
+        <li>La couleur n'est jamais le seul repère : légendes nommées, noms des stations sur la carte, valeurs dans les infobulles et les tableaux.</li>
+        <li>Lien d'évitement, navigation au clavier, focus visible, <code>&lt;label&gt;</code> sur chaque filtre, zone <code>aria-live</code> qui annonce la mise à jour, défilement doux coupé si <code>prefers-reduced-motion</code>.</li>
+        <li>Contrastes vérifiés (≥ 4,5:1 pour le texte, couleurs des stations assombries quand elles colorent du texte) ; contrôle Lighthouse sur chaque page.</li>
+      </ul>
+    </section>
+
+    <!-- 7 -->
+    <section id="donnees" aria-labelledby="titre-donnees" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-donnees" class="titre text-3xl font-semibold sm:text-4xl">7. Données téléchargeables</h2>
+      <p class="mt-4 leading-relaxed">
+        Fichiers préfiltrés&nbsp;: seulement les colonnes utiles, dénominateurs conservés, deux décimales. Ce sont
+        exactement les fichiers lus par les graphiques. Licence Ouverte 2.0 — citer «&nbsp;Météo-France&nbsp;».
+      </p>
+      <ul class="mt-6 space-y-4">
+        {
+          fichiers.map((f) => (
+            <li class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
+              <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h3 class="titre text-lg font-semibold">{f.titre}</h3>
+                <p class="flex gap-2 text-sm font-bold">
+                  <a class="repere border border-encre px-3 py-1 transition hover:bg-encre hover:text-papier" href={`/donnees/${f.nom}.csv`} download>
+                    CSV<span class="sr-only"> — {f.titre}</span>
+                  </a>
+                  <a class="repere border border-encre px-3 py-1 transition hover:bg-encre hover:text-papier" href={`/donnees/${f.nom}.json`} download>
+                    JSON<span class="sr-only"> — {f.titre}</span>
+                  </a>
+                </p>
+              </div>
+              <p class="mt-2 text-sm">{f.description} {entier(f.lignes.length)} lignes.</p>
+              <p class="mt-1 text-xs text-graphite">Colonnes : {f.colonnes}</p>
+            </li>
+          ))
+        }
+        <li class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
+          <div class="flex flex-wrap items-baseline justify-between gap-3">
+            <h3 class="titre text-lg font-semibold">{geojson.titre}</h3>
+            <a class="repere border border-encre px-3 py-1 transition hover:bg-encre hover:text-papier" href={`/donnees/${geojson.nom}.geojson`} download>
+              GeoJSON<span class="sr-only"> — {geojson.titre}</span>
+            </a>
+          </div>
+        </li>
+      </ul>
+      <p class="mt-8 leading-relaxed">
+        Notebook de l'analyse&nbsp;: <a class="lien font-bold break-all" href={NOTEBOOK}>{NOTEBOOK}</a><br />
+        Code du site&nbsp;: <a class="lien font-bold break-all" href={DEPOT}>{DEPOT}</a>
+      </p>
+    </section>
+  </div>
+</Layout>

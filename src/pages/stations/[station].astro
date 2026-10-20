@@ -1,0 +1,117 @@
+---
+// Route C : une page par station, générée au build par getStaticPaths().
+import type { GetStaticPaths } from "astro";
+import Layout from "../../layouts/Layout.astro";
+import ChartCard from "../../components/ChartCard.astro";
+import PillNav from "../../components/PillNav.astro";
+import { stations, serieDe, reperes, quotidiennes, cleQuotidienne, deg, degSigne, entier } from "../../lib/donnees";
+import { barresAnnuelles, evolutionStation } from "../../lib/graphiques";
+import { couleurStation, type Station } from "../../lib/palette";
+
+export const getStaticPaths = (() => stations.map((s) => ({ params: { station: s.slug } }))) satisfies GetStaticPaths;
+
+const fiche = stations.find((s) => s.slug === Astro.params.station)!;
+const nom = fiche.station as Station;
+const autre = stations.find((s) => s !== fiche)!;
+const serie = serieDe(nom);
+const { min, max, reference } = reperes(nom);
+const cle = cleQuotidienne(nom);
+const mesures = quotidiennes.filter((d) => d[cle] !== null);
+const record = mesures.reduce((a, b) => ((b[cle] as number) > (a[cle] as number) ? b : a));
+const dateLongue = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" });
+
+const links = stations.map((s) => ({
+  href: `/stations/${s.slug}/`,
+  label: s.station,
+  current: s === fiche,
+  couleur: couleurStation[s.station as Station],
+}));
+---
+
+<Layout
+  title={`Station ${nom}`}
+  description={`Fiche de la station Météo-France ${nom} (${fiche.numero}) : moyenne annuelle des températures maximales de 2003 à 2022.`}
+>
+  <div class="mx-auto max-w-4xl px-4 pt-12 sm:px-6 sm:pt-16">
+    <p class="repere text-graphite">
+      Fiche station · Météo-France n° {fiche.numero} · <a href="/#exploration" class="text-sapin underline-offset-4 hover:underline">← retour à l'enquête</a>
+    </p>
+    <h1 class="titre mt-4 flex flex-wrap items-baseline gap-x-4 text-5xl font-bold leading-none sm:text-7xl">
+      <span aria-hidden="true" class="inline-block h-6 w-6 self-center rounded-full sm:h-8 sm:w-8" style={`background:${couleurStation[nom]}`}></span>
+      {nom}
+    </h1>
+    <PillNav label="Changer de station" links={links} />
+
+    <section aria-labelledby="titre-identite" class="border-x border-b border-encre bg-panneau">
+      <h2 id="titre-identite" class="sr-only">Identité de la station</h2>
+      <dl class="grid grid-cols-2 sm:grid-cols-4">
+        {
+          [
+            ["Numéro Météo-France", fiche.numero],
+            ["Commune", fiche.commune],
+            ["Altitude", `${fiche.altitude} m`],
+            ["Coordonnées", `${fiche.latitude.toFixed(2).replace(".", ",")}° N, ${fiche.longitude.toFixed(2).replace(".", ",")}° E`],
+            ["Moyenne 2003–2022 des TX", deg(reference, 2)],
+            ["Année la plus chaude", `${max.annee} (${deg(max.txMoyenne, 2)})`],
+            ["Année la plus fraîche", `${min.annee} (${deg(min.txMoyenne, 2)})`],
+            ["Journée la plus chaude", `${dateLongue(record.date)} (${deg(record[cle] as number)})`],
+          ].map(([t, d]) => (
+            <div class="border-b border-r border-trait p-4 sm:p-5">
+              <dt class="repere text-graphite">{t}</dt>
+              <dd class="titre mt-2 text-xl font-semibold">{d}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="titre-annees" class="mt-16 border-t-2 border-encre pt-6">
+      <p class="repere text-sapin">Vingt ans de mesures</p>
+      <h2 id="titre-annees" class="titre mt-2 text-3xl font-semibold leading-tight sm:text-4xl">Vingt années de températures maximales</h2>
+      <p class="mt-4 max-w-3xl text-lg leading-relaxed">
+        Les deux graphiques du notebook pour cette station : la moyenne annuelle des maximales en barres, puis son
+        évolution, sur la même échelle verticale que l'autre station.
+      </p>
+      <ChartCard chart={{ ...barresAnnuelles(nom), route: "C" }} id={`graphique-barres-${fiche.slug}`} numero={1} interactif="barres" valeur={nom} class="mt-10">
+        <table class="tableau">
+          <caption class="sr-only">Moyennes annuelles des températures maximales à {nom}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Année</th>
+              <th scope="col">Mois utilisés</th>
+              <th scope="col">Jours utilisés</th>
+              <th scope="col">Moyenne des TX</th>
+              <th scope="col">Écart à la moyenne</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              serie.map((d) => (
+                <tr>
+                  <th scope="row">{d.annee}</th>
+                  <td>{d.moisDisponibles}</td>
+                  <td>{entier(d.joursUtilises)}</td>
+                  <td>{deg(d.txMoyenne, 2)}</td>
+                  <td>{degSigne(d.anomalie)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </ChartCard>
+      <ChartCard chart={{ ...evolutionStation(nom), route: "C" }} id={`graphique-evolution-${fiche.slug}`} numero={2} interactif="evolution" valeur={nom} class="mt-14" />
+    </section>
+
+    <section aria-labelledby="titre-suite" class="mt-14 border-l-4 border-sapin bg-panneau p-6 sm:p-8">
+      <p class="repere text-sapin">Méthode</p>
+      <h2 id="titre-suite" class="titre mt-2 text-2xl font-semibold">Pourquoi une page par station&nbsp;?</h2>
+      <p class="mt-2 max-w-3xl leading-relaxed text-graphite">
+        Il n'y a que deux valeurs possibles, qui ne changent pas&nbsp;: chaque fiche est générée au build, a sa propre
+        adresse à partager, et s'affiche sans JavaScript. Voir aussi la fiche de
+        <a class="lien font-semibold text-encre" href={`/stations/${autre.slug}/`}>{autre.station}</a> et la
+        <a class="lien font-semibold text-encre" href="/methode/#routes">justification des routes d'export</a>.
+      </p>
+    </section>
+  </div>
+</Layout>

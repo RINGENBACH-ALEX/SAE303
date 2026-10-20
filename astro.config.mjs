@@ -7,8 +7,16 @@ import netlify from '@astrojs/netlify';
 
 // https://astro.build/config
 export default defineConfig({
+  // Garde les espaces entre le texte et les expressions {…} des paragraphes
+  compressHTML: false,
+
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // Plot est importé dynamiquement par le script des filtres : on le pré-optimise
+    // dès le démarrage du serveur de dev (sinon 504 « Outdated Optimize Dep », cf. TP7)
+    optimizeDeps: {
+      include: ['@observablehq/plot']
+    }
   },
 
   adapter: netlify()

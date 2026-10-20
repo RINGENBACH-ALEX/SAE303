@@ -1,9 +1,71 @@
 ---
+// Graphique Observable Plot rendu au build (SVG inline, aucun JavaScript nécessaire).
+// Le SVG est exposé comme une seule image aux lecteurs d'écran (role="img" +
+// aria-label) ; le détail chiffré est dans le tableau de la figure.
+//
+// Les légendes continues de Plot (YlOrRd, divergente) sont dessinées dans un
+// <canvas>, que jsdom ne sait pas produire : on refait alors le graphique sans
+// légende et on la remplace par une rampe SVG équivalente (dégradé + graduations).
+// Dans le navigateur, le script des filtres redessine avec la légende de Plot.
 import * as Plot from "@observablehq/plot";
-import { JSDOM } from "jsdom";
-const { options } = Astro.props;
+import { JSDOM, VirtualConsole } from "jsdom";
+import { nettoyerAria } from "../lib/commun";
 
-const plot = Plot.plot({ ...options, document: new JSDOM("").window.document });
+interface Props {
+  options: Plot.PlotOptions;
+  label: string;
+  id?: string;
+  class?: string;
+  // Largeur minimale (px) : sur petit écran, le graphique défile au lieu de devenir illisible
+  largeurMin?: number;
+}
+const { options, label, id, class: className, largeurMin } = Astro.props;
+// Console virtuelle muette : jsdom signale sinon le canvas non implémenté
+const document = new JSDOM("", { virtualConsole: new VirtualConsole() }).window.document;
+
+// L'échelle est celle que Plot a réellement calculée pour le graphique (domaine compris)
+function legendeSVG(couleur: Record<string, unknown>, options: Plot.ScaleOptions) {
+  const echelle = Plot.scale({ color: { ...options, legend: undefined } as Plot.ScaleOptions });
+  const [min, max] = [Math.min(...(echelle.domain as number[])), Math.max(...(echelle.domain as number[]))];
+  const largeur = 240;
+  const x = (v: number) => 0.5 + ((v - min) / (max - min)) * (largeur - 1);
+  const pas = max - min > 4 ? 1 : 0.5;
+  const graduations: number[] = [];
+  for (let v = Math.ceil(min / pas) * pas; v <= max + 1e-9; v += pas) graduations.push(Math.round(v * 10) / 10);
+  const arrets = Array.from({ length: 11 }, (_, i) => {
+    const v = min + ((max - min) * i) / 10;
+    return `<stop offset="${i * 10}%" stop-color="${echelle.apply(v)}"/>`;
+  }).join("");
+  const idDegrade = `degrade-${Math.random().toString(36).slice(2, 8)}`;
+  return `<svg width="${largeur + 1}" height="50" viewBox="0 0 ${largeur + 1} 50" aria-hidden="true" style="overflow:visible;font:10px system-ui,sans-serif;display:block">
+    <defs><linearGradient id="${idDegrade}">${arrets}</linearGradient></defs>
+    <text x="0" y="12" font-weight="bold" fill="currentColor">${couleur.label ?? ""}</text>
+    <rect x="0" y="18" width="${largeur}" height="10" fill="url(#${idDegrade})"/>
+    ${graduations.map((g) => `<line x1="${x(g)}" x2="${x(g)}" y1="18" y2="34" stroke="currentColor"/><text x="${x(g)}" y="44" text-anchor="middle" fill="currentColor">${String(g).replace(".", ",")}</text>`).join("")}
+  </svg>`;
+}
+
+let html: string;
+const base = { ...options, document } as Plot.PlotOptions;
+try {
+  html = nettoyerAria(Plot.plot(base) as unknown as Element).outerHTML;
+} catch {
+  const couleur = (options as { color?: Record<string, unknown> }).color ?? {};
+  const sansLegende = Plot.plot({ ...base, color: { ...couleur, legend: false } } as Plot.PlotOptions);
+  html = `<div>${legendeSVG(couleur, (sansLegende as unknown as { scale: (n: string) => Plot.ScaleOptions }).scale("color"))}</div>${nettoyerAria(sansLegende as unknown as Element).outerHTML}`;
+}
 ---
 
-<div set:html={plot.outerHTML} />
+<div
+  id={id}
+  class:list={[
+    "mt-4 [&_svg]:h-auto [&_svg]:max-w-full [&_figure]:m-0",
+    largeurMin && "overflow-x-auto [&>svg:last-child]:min-w-(--lmin) [&_figure>svg:last-of-type]:min-w-(--lmin)",
+    className,
+  ]}
+  style={largeurMin ? `--lmin:${largeurMin}px` : undefined}
+  tabindex={largeurMin ? 0 : undefined}
+  role="img"
+  aria-label={label}
+  set:html={html}
+/>

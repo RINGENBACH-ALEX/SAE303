@@ -1,0 +1,105 @@
+---
+// Figure d'un graphique, mise en page « média de données » : surtitre, titre,
+// phrase-clé, filtres éventuels, SVG accessible, <figcaption> (lecture, source)
+// et tableau des valeurs dans un <details> (alternative textuelle complète).
+//
+// Avec la prop « interactif », la figure porte data-graphique : à l'approche du
+// lecteur, scripts/filtres.ts redessine le graphique dans le navigateur, ce qui
+// active les infobulles de Plot (tip) au survol, et branche les <select> du slot
+// « filtres » (route B), comme les filtres du TP7. « valeur » donne le paramètre
+// du graphique quand il n'a pas de filtre (ex. la station d'une fiche).
+import PlotFigure from "./PlotFigure.astro";
+import type { Chart } from "../lib/graphiques";
+
+interface Props {
+  chart: Chart;
+  id: string;
+  numero?: number;
+  interactif?: "barres" | "evolution" | "anomalies" | "carte" | "comparaison";
+  valeur?: string;
+  class?: string;
+}
+const { chart, id, numero, interactif, valeur, class: className } = Astro.props;
+const aDesDonnees = Astro.slots.has("default");
+const aDesFiltres = Astro.slots.has("filtres");
+
+const routes = {
+  A: "Graphique calculé à la publication",
+  B: "Graphique interactif",
+  C: "Une page par station",
+};
+---
+
+<figure
+  aria-labelledby={`${id}-titre`}
+  data-graphique={interactif}
+  data-valeur={valeur}
+  class:list={["border-t-4 border-encre pt-4", className]}
+>
+  <p class="repere text-sapin">
+    {numero !== undefined ? `Graphique ${numero}` : "Graphique"}
+    <span class="text-graphite"> · {routes[chart.route]}</span>
+  </p>
+  <h3 id={`${id}-titre`} data-titre class="titre mt-2 text-2xl font-semibold leading-tight sm:text-[1.7rem]">
+    {chart.titre}
+  </h3>
+  <p data-sous-titre class="mt-2 max-w-3xl text-base leading-snug text-graphite sm:text-lg">{chart.sousTitre}</p>
+
+  {
+    aDesFiltres && (
+      <div class="mt-5 flex flex-wrap items-end gap-x-6 gap-y-3 border-y border-trait py-3">
+        <slot name="filtres" />
+        <p data-statut aria-live="polite" class="repere pb-2 text-graphite" />
+      </div>
+    )
+  }
+
+  <PlotFigure id={id} label={chart.label} options={chart.options} largeurMin={chart.largeurMin} />
+
+  <figcaption class="mt-4 max-w-3xl space-y-1.5 border-t border-trait pt-3 text-sm leading-relaxed text-graphite">
+    {chart.legende && <p><strong class="font-semibold text-encre">Lecture.</strong> {chart.legende}</p>}
+    <p>
+      <strong class="font-semibold text-encre">Source.</strong>
+      {chart.source}. <a class="lien" href={`/methode/#route-${chart.route.toLowerCase()}`}>Méthode</a>
+    </p>
+  </figcaption>
+  {
+    aDesDonnees && (
+      <details class="group mt-3">
+        <summary class="repere inline-flex cursor-pointer list-none items-center gap-2 text-sapin hover:underline [&::-webkit-details-marker]:hidden">
+          <span aria-hidden="true" class="inline-block transition group-open:rotate-90">▸</span>
+          Voir les données du graphique
+        </summary>
+        <div class="mt-2 max-h-96 overflow-auto border border-trait bg-panneau px-3 pb-3">
+          <slot />
+        </div>
+      </details>
+    )
+  }
+</figure>
+
+<script>
+  // Plot n'est téléchargé qu'à l'approche d'un graphique : il remplace alors le SVG du
+  // build (repli sans JavaScript) par la version avec infobulles au survol.
+  let module: Promise<typeof import("../scripts/filtres")> | undefined;
+  const charger = () => (module ??= import("../scripts/filtres"));
+  const figures = document.querySelectorAll<HTMLElement>("figure[data-graphique]");
+
+  const observateur = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observateur.unobserve(entry.target);
+        charger().then((m) => m.brancher(entry.target as HTMLElement));
+      });
+    },
+    { rootMargin: "300px 0px" },
+  );
+  figures.forEach((f) => {
+    observateur.observe(f);
+    // Survol ou changement de filtre avant le chargement : on branche tout de suite
+    const vite = () => charger().then((m) => m.brancher(f));
+    f.addEventListener("pointerenter", vite, { once: true });
+    f.querySelector("select")?.addEventListener("change", vite, { once: true });
+  });
+</script>

@@ -1,0 +1,362 @@
+[
+ {
+  "station": "Mulhouse",
+  "annee": 2003,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.1,
+  "reference": 16.39,
+  "anomalie": 0.71
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2004,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 15.37,
+  "reference": 16.39,
+  "anomalie": -1.02
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2005,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 15.67,
+  "reference": 16.39,
+  "anomalie": -0.72
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2006,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 15.91,
+  "reference": 16.39,
+  "anomalie": -0.48
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2007,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.2,
+  "reference": 16.39,
+  "anomalie": -0.2
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2008,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 15.34,
+  "reference": 16.39,
+  "anomalie": -1.06
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2009,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.2,
+  "reference": 16.39,
+  "anomalie": -0.19
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2010,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 14.38,
+  "reference": 16.39,
+  "anomalie": -2.01
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2011,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.06,
+  "reference": 16.39,
+  "anomalie": 0.67
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2012,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 15.8,
+  "reference": 16.39,
+  "anomalie": -0.59
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2013,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 15,
+  "reference": 16.39,
+  "anomalie": -1.39
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2014,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.2,
+  "reference": 16.39,
+  "anomalie": 0.81
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2015,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.34,
+  "reference": 16.39,
+  "anomalie": 0.95
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2016,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 15.84,
+  "reference": 16.39,
+  "anomalie": -0.55
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2017,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.74,
+  "reference": 16.39,
+  "anomalie": 0.35
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2018,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.7,
+  "reference": 16.39,
+  "anomalie": 1.31
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2019,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.09,
+  "reference": 16.39,
+  "anomalie": 0.7
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2020,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 17.84,
+  "reference": 16.39,
+  "anomalie": 1.45
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2021,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 15.79,
+  "reference": 16.39,
+  "anomalie": -0.6
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2022,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 18.25,
+  "reference": 16.39,
+  "anomalie": 1.86
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2003,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.38,
+  "reference": 16.84,
+  "anomalie": 0.54
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2004,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 15.64,
+  "reference": 16.84,
+  "anomalie": -1.2
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2005,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.08,
+  "reference": 16.84,
+  "anomalie": -0.76
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2006,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.28,
+  "reference": 16.84,
+  "anomalie": -0.56
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2007,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.58,
+  "reference": 16.84,
+  "anomalie": -0.26
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2008,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 15.93,
+  "reference": 16.84,
+  "anomalie": -0.91
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2009,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.69,
+  "reference": 16.84,
+  "anomalie": -0.15
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2010,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 14.95,
+  "reference": 16.84,
+  "anomalie": -1.89
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2011,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.48,
+  "reference": 16.84,
+  "anomalie": 0.64
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2012,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 16.52,
+  "reference": 16.84,
+  "anomalie": -0.32
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2013,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 15.49,
+  "reference": 16.84,
+  "anomalie": -1.35
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2014,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.38,
+  "reference": 16.84,
+  "anomalie": 0.54
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2015,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.78,
+  "reference": 16.84,
+  "anomalie": 0.94
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2016,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 16.31,
+  "reference": 16.84,
+  "anomalie": -0.53
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2017,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.37,
+  "reference": 16.84,
+  "anomalie": 0.53
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2018,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 18.04,
+  "reference": 16.84,
+  "anomalie": 1.2
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2019,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 17.57,
+  "reference": 16.84,
+  "anomalie": 0.73
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2020,
+  "moisDisponibles": 12,
+  "joursUtilises": 366,
+  "txMoyenne": 18.32,
+  "reference": 16.84,
+  "anomalie": 1.48
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2021,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 16.27,
+  "reference": 16.84,
+  "anomalie": -0.57
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2022,
+  "moisDisponibles": 12,
+  "joursUtilises": 365,
+  "txMoyenne": 18.77,
+  "reference": 16.84,
+  "anomalie": 1.93
+ }
+]

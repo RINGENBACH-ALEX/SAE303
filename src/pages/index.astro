@@ -1,21 +1,474 @@
 ---
-import PlotFigure from "../components/PlotFigure.astro";
+// L'enquête, en 4 temps : contexte → exploration → révélation → conclusion.
+// Les graphiques sont ceux du notebook Observable (src/lib/graphiques.ts) ;
+// quatre d'entre eux ont un filtre <select>, comme au TP7.
 import Layout from "../layouts/Layout.astro";
-import * as Plot from "@observablehq/plot";
-import penguins from "../assets/penguins.json";
+import ChartCard from "../components/ChartCard.astro";
+import LinkCards from "../components/LinkCards.astro";
+import OuvertureChapitre from "../components/OuvertureChapitre.astro";
+import {
+  stations,
+  txAnnuelles,
+  ecarts,
+  ecartsResume,
+  anneesMemeSigne,
+  decennies,
+  hausseDecennie,
+  reperes,
+  serieDe,
+  annees,
+  joursCommuns,
+  jourRecord,
+  deg,
+  degSigne,
+  entier,
+  pct,
+} from "../lib/donnees";
+import {
+  barresAnnuelles,
+  evolutionStation,
+  comparaisonCourbes,
+  anomaliesStations,
+  choixStations,
+  carteAnomalies,
+  pointsAnnee,
+} from "../lib/graphiques";
+import { STATIONS, couleurStation, couleurTexteStation, type Station } from "../lib/palette";
+
+const [mulhouse, colmar] = stations;
+const rM = reperes("Mulhouse");
+const rC = reperes("Colmar-Meyenheim");
+const [d1, d2] = decennies;
+
+const temps = [
+  { id: "contexte", num: "1", nom: "Contexte", titre: "Deux thermomètres, vingt ans de mesures" },
+  { id: "exploration", num: "2", nom: "Exploration", titre: "D'une année à l'autre, près de 4 °C d'écart" },
+  {
+    id: "revelation",
+    num: "3",
+    nom: "Révélation",
+    titre: `La station de Mulhouse est la plus fraîche, ${ecartsResume.anneesMulhouseFraiche} années sur ${ecarts.length}`,
+  },
+  { id: "conclusion", num: "4", nom: "Conclusion", titre: "Une décennie plus chaude d'environ 1 °C, aux deux stations" },
+];
+
+// Valeurs par défaut des filtres (celles du notebook)
+const stationDefaut: Station = "Mulhouse";
+const anneeDefaut = 2022;
+
+// Années les plus chaudes, identiques aux deux stations (vérifié ici)
+const classement = (s: Station) => [...serieDe(s)].sort((a, b) => b.txMoyenne - a.txMoyenne).map((d) => d.annee);
+const top3 = classement("Mulhouse").slice(0, 3);
+const memeTop3 = classement("Colmar-Meyenheim").slice(0, 3).join() === top3.join();
+const plusFraiche = classement("Mulhouse").at(-1);
+
+const anomalieDe = (station: string, annee: number) =>
+  txAnnuelles.find((d) => d.station === station && d.annee === annee)!;
+const dateRecord = new Date(jourRecord.date).toLocaleDateString("fr-FR", {
+  timeZone: "UTC",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+const texte = "mx-auto max-w-2xl space-y-5 text-[1.15rem] leading-[1.7]";
+const largeur = "mx-auto max-w-4xl";
+const selectClass =
+  "mt-1 border border-encre/40 bg-papier px-3 py-2 text-sm font-medium transition hover:border-encre focus:border-encre";
+const labelClass = "repere block text-graphite";
 ---
 
-<Layout>
-  <h1 class="text-2xl">Test Astro et Plot (Observablehq)</h1>
-  <PlotFigure
-    options={{
-      marks: [
-        Plot.dot(penguins, {
-          x: "culmen_length_mm",
-          y: "culmen_depth_mm",
-          stroke: "species",
-        }),
-      ],
-    }}
-  />
+<Layout description="Les relevés de Météo-France montrent une décennie 2013-2022 plus chaude d'environ 1 °C à Mulhouse et à Colmar-Meyenheim. Une enquête en données sur vingt ans de températures maximales.">
+  <article>
+    <!-- ======================== En-tête de l'article ======================== -->
+    <header class="mx-auto max-w-3xl px-4 pt-12 sm:px-6 sm:pt-16">
+      <p class="repere text-sapin">Climat · Haut-Rhin</p>
+      <h1 class="titre mt-4 text-4xl font-bold leading-[1.05] sm:text-6xl">
+        À Mulhouse, les après-midi ont gagné près d'un degré en dix&nbsp;ans
+      </h1>
+      <p class="mt-6 text-xl leading-relaxed text-graphite sm:text-[1.4rem]">
+        Les relevés de Météo-France le montrent&nbsp;: la décennie 2013-2022 a été nettement plus chaude que la
+        précédente, à Mulhouse comme à Colmar-Meyenheim. Et contrairement à une idée reçue, ce n'est pas la station de la
+        ville qui enregistre les après-midi les plus chauds.
+      </p>
+      <p class="mt-6 flex flex-wrap gap-x-3 gap-y-1 border-y border-trait py-3 text-sm text-graphite">
+        <span>Par <strong class="font-semibold text-encre">Alex Ringenbach</strong> et <strong class="font-semibold text-encre">Melvyn Philippon</strong></span>
+        <span aria-hidden="true">·</span>
+        <time datetime="2026-10-20">Publié le 20 octobre 2026</time>
+        <span aria-hidden="true">·</span>
+        <span>Données Météo-France, 2003-2022</span>
+        <span aria-hidden="true">·</span>
+        <a class="lien" href="/methode/">Méthode</a>
+      </p>
+    </header>
+
+    <!-- L'essentiel : les trois chiffres de l'enquête -->
+    <section aria-labelledby="titre-essentiel" class="mx-auto mt-10 max-w-4xl px-4 sm:px-6">
+      <h2 id="titre-essentiel" class="repere text-graphite">L'essentiel</h2>
+      <dl class="mt-3 grid gap-px overflow-hidden border border-trait bg-trait sm:grid-cols-3">
+        <div class="bg-panneau p-5">
+          <dt class="text-sm text-graphite">Hausse de la moyenne des maximales à Mulhouse entre 2003-2012 et 2013-2022</dt>
+          <dd class="titre mt-2 text-4xl font-bold">{degSigne(hausseDecennie("Mulhouse"))}</dd>
+        </div>
+        <div class="bg-panneau p-5">
+          <dt class="text-sm text-graphite">Journées à 30 °C ou plus à Mulhouse, d'une décennie à l'autre</dt>
+          <dd class="titre mt-2 text-4xl font-bold">{d1.mulhouse.jours30} → {d2.mulhouse.jours30}</dd>
+        </div>
+        <div class="bg-panneau p-5">
+          <dt class="text-sm text-graphite">Années où la station de Mulhouse est restée plus fraîche que Colmar-Meyenheim</dt>
+          <dd class="titre mt-2 text-4xl font-bold">{ecartsResume.anneesMulhouseFraiche} sur {ecarts.length}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- Les 4 temps du récit : suit la lecture (IntersectionObserver) -->
+    <nav aria-label="Les quatre temps de l'enquête" class="sticky top-[54px] z-20 mt-12 border-y border-trait bg-papier/95 backdrop-blur">
+      <ol class="mx-auto flex max-w-4xl overflow-x-auto px-4 sm:px-6">
+        {
+          temps.map((t) => (
+            <li class="shrink-0">
+              <a
+                href={`#${t.id}`}
+                data-temps={t.id}
+                class="chapitre flex items-center gap-2 border-b-[3px] border-transparent px-3 py-2.5 text-sm text-graphite transition hover:text-encre"
+              >
+                <span class="font-mono text-xs">{t.num}</span>
+                {t.nom}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="px-4 sm:px-6">
+      <!-- ======================== 1 · Contexte ======================== -->
+      <section id="contexte" aria-labelledby="titre-contexte" class="pt-16">
+        <OuvertureChapitre {...temps[0]} id="titre-contexte" />
+        <div class:list={[texte, "mt-6"]}>
+          <p>
+            On parle souvent de « chaleur » sans dire laquelle. Cette enquête suit la <strong>température maximale</strong>
+            de chaque journée, notée <abbr title="température maximale quotidienne">TX</abbr>&nbsp;: la plus haute valeur
+            relevée sous abri, en général l'après-midi. C'est la chaleur qu'on ressent en sortant du travail ou de l'école.
+          </p>
+          <p>
+            Deux stations de Météo-France la mesurent depuis des décennies dans le Haut-Rhin&nbsp;: celle de
+            <strong style={`color:${couleurTexteStation.Mulhouse}`}>Mulhouse</strong> ({mulhouse.altitude}&nbsp;m
+            d'altitude) et celle de <strong style={`color:${couleurTexteStation["Colmar-Meyenheim"]}`}>Colmar-Meyenheim</strong>,
+            installée à Oberentzen, en pleine plaine ({colmar.altitude}&nbsp;m). Nous avons retenu leurs séries de référence,
+            contrôlées et homogénéisées par Météo-France, sur vingt années complètes&nbsp;: de 2003 à 2022.
+          </p>
+          <p>
+            Premier constat, année par année&nbsp;: la moyenne des maximales oscille entre 14 et 19&nbsp;°C, et les barres
+            les plus foncées (rouges pour Mulhouse, bleu nuit pour Colmar-Meyenheim) se trouvent en bas du graphique, dans les années récentes.
+          </p>
+        </div>
+
+        <ChartCard chart={barresAnnuelles(stationDefaut)} id="graphique-barres" numero={1} interactif="barres" class={`${largeur} mt-10`}>
+          <div slot="filtres">
+            <label for="filtre-barres" class={labelClass}>Station</label>
+            <select id="filtre-barres" data-filtre class={selectClass}>
+              {STATIONS.map((s) => <option selected={s === stationDefaut}>{s}</option>)}
+            </select>
+          </div>
+          <table class="tableau">
+            <caption class="sr-only">Moyenne annuelle des TX par station</caption>
+            <thead>
+              <tr><th scope="col">Année</th>{STATIONS.map((s) => <th scope="col">{s} (°C)</th>)}</tr>
+            </thead>
+            <tbody>
+              {ecarts.map((e) => <tr><th scope="row">{e.annee}</th><td>{e.mulhouse.toFixed(2)}</td><td>{e.colmar.toFixed(2)}</td></tr>)}
+            </tbody>
+          </table>
+        </ChartCard>
+      </section>
+
+      <!-- ======================== 2 · Exploration ======================== -->
+      <section id="exploration" aria-labelledby="titre-exploration" class="pt-24">
+        <OuvertureChapitre {...temps[1]} id="titre-exploration" />
+        <div class:list={[texte, "mt-6"]}>
+          <p>
+            À Mulhouse, la moyenne annuelle des maximales va de {deg(rM.min.txMoyenne, 2)} en {rM.min.annee}, l'année la
+            plus fraîche, à {deg(rM.max.txMoyenne, 2)} en {rM.max.annee}. À Colmar-Meyenheim, de {deg(rC.min.txMoyenne, 2)}
+            ({rC.min.annee}) à {deg(rC.max.txMoyenne, 2)} ({rC.max.annee}).
+          </p>
+          <p>
+            Les courbes montent et descendent sans cesse&nbsp;: une année fraîche suit souvent une année chaude. Mais les
+            points les plus hauts se concentrent dans la seconde moitié de la période. Changez de station&nbsp;: l'échelle
+            verticale reste la même, pour comparer sans tricher.
+          </p>
+        </div>
+
+        <ChartCard chart={evolutionStation(stationDefaut)} id="graphique-evolution" numero={2} interactif="evolution" class={`${largeur} mt-10`}>
+          <div slot="filtres">
+            <label for="filtre-evolution" class={labelClass}>Station</label>
+            <select id="filtre-evolution" data-filtre class={selectClass}>
+              {STATIONS.map((s) => <option selected={s === stationDefaut}>{s}</option>)}
+            </select>
+          </div>
+        </ChartCard>
+
+        <div class="mx-auto mt-12 max-w-2xl">
+          <p class="repere text-graphite">Voir aussi</p>
+          <LinkCards
+            label="Fiches des stations"
+            links={stations.map((s) => {
+              const r = reperes(s.station as Station);
+              return {
+                href: `/stations/${s.slug}/`,
+                tag: `Fiche station · n° ${s.numero}`,
+                title: s.station,
+                text: `Moyenne 2003-2022 : ${deg(r.reference, 2)} · année la plus chaude : ${r.max.annee}`,
+                couleur: couleurStation[s.station as Station],
+              };
+            })}
+          />
+        </div>
+      </section>
+
+      <!-- ======================== 3 · Révélation ======================== -->
+      <section id="revelation" aria-labelledby="titre-revelation" class="pt-24">
+        <OuvertureChapitre {...temps[2]} id="titre-revelation" />
+        <div class:list={[texte, "mt-6"]}>
+          <p>
+            On s'attendrait à ce que la ville, avec son béton et son bitume, soit plus chaude que la campagne. Posons les deux
+            courbes sur les mêmes axes&nbsp;: c'est l'inverse. Chaque année de 2003 à 2022, les après-midi ont été en moyenne
+            <strong>plus chauds à Colmar-Meyenheim qu'à Mulhouse</strong>, de {deg(-ecartsResume.moyen, 2)} en moyenne.
+          </p>
+        </div>
+
+        <ChartCard chart={comparaisonCourbes()} id="graphique-comparaison" numero={3} interactif="comparaison" class={`${largeur} mt-10`}>
+          <table class="tableau">
+            <caption class="sr-only">Moyennes annuelles et écart Mulhouse − Colmar-Meyenheim</caption>
+            <thead>
+              <tr>
+                <th scope="col">Année</th><th scope="col">Mulhouse (°C)</th><th scope="col">Colmar-Meyenheim (°C)</th>
+                <th scope="col">Écart Mulhouse − Colmar-Meyenheim (°C)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                ecarts.map((e) => (
+                  <tr>
+                    <th scope="row">{e.annee}</th>
+                    <td>{e.mulhouse.toFixed(2)}</td>
+                    <td>{e.colmar.toFixed(2)}</td>
+                    <td>{e.ecart.toFixed(2)}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </ChartCard>
+
+        <aside aria-labelledby="titre-pourquoi" class="mx-auto mt-12 max-w-2xl border-l-4 border-sapin bg-panneau p-6 sm:p-8">
+          <p class="repere text-sapin">Décryptage</p>
+          <h3 id="titre-pourquoi" class="titre mt-2 text-2xl font-semibold">Pourquoi la ville serait-elle plus fraîche&nbsp;?</h3>
+          <ul class="mt-4 space-y-3 leading-relaxed text-graphite">
+            <li>
+              <strong class="text-encre">L'altitude.</strong> La station de Mulhouse est {mulhouse.altitude - colmar.altitude}&nbsp;m
+              plus haut. Avec la baisse habituelle d'environ 0,65&nbsp;°C par 100&nbsp;m, cela n'expliquerait qu'une partie
+              de l'écart (environ {deg(((mulhouse.altitude - colmar.altitude) * 0.65) / 100, 2)}).
+            </li>
+            <li>
+              <strong class="text-encre">Le climat local.</strong> Le centre de la plaine, abrité par les Vosges, est réputé
+              sec et ensoleillé, alors que le sud du département est plus ouvert aux vents d'ouest.
+            </li>
+            <li>
+              <strong class="text-encre">L'emplacement exact.</strong> Un thermomètre décrit son abri et ses alentours
+              immédiats, pas toute une ville.
+            </li>
+          </ul>
+          <p class="mt-4 text-sm text-graphite">
+            Ces pistes ne sont pas démontrées par nos données&nbsp;: elles montrent seulement qu'un écart ville-campagne ne se
+            voit pas ici.
+          </p>
+        </aside>
+
+        <div class="mx-auto mt-16 max-w-2xl">
+          <h3 class="titre text-2xl font-semibold leading-tight sm:text-3xl">Pourtant, les deux courbes battent au même rythme</h3>
+        </div>
+        <div class:list={[texte, "mt-4"]}>
+          <p>
+            Retirons à chaque station son propre niveau, en comparant chaque année à sa moyenne 2003-2022. Les deux courbes
+            deviennent presque identiques&nbsp;: {anneesMemeSigne} années sur {annees.length}, elles sont du même côté de la
+            référence. Ce qui rend une année chaude ou fraîche touche tout le Sud-Alsace à la fois.
+          </p>
+        </div>
+
+        <ChartCard chart={anomaliesStations()} id="graphique-anomalies" numero={4} interactif="anomalies" class={`${largeur} mt-10`}>
+          <div slot="filtres">
+            <label for="filtre-anomalies" class={labelClass}>Afficher</label>
+            <select id="filtre-anomalies" data-filtre class={selectClass}>
+              {choixStations.map((s, i) => <option selected={i === 0}>{s}</option>)}
+            </select>
+          </div>
+          <table class="tableau">
+            <caption class="sr-only">Anomalies annuelles de TX par station</caption>
+            <thead>
+              <tr><th scope="col">Année</th>{STATIONS.map((s) => <th scope="col">{s} (°C)</th>)}</tr>
+            </thead>
+            <tbody>
+              {annees.map((a) => <tr><th scope="row">{a}</th>{STATIONS.map((s) => <td>{anomalieDe(s, a).anomalie.toFixed(2)}</td>)}</tr>)}
+            </tbody>
+          </table>
+        </ChartCard>
+      </section>
+
+      <!-- ======================== 4 · Conclusion ======================== -->
+      <section id="conclusion" aria-labelledby="titre-conclusion" class="pt-24">
+        <OuvertureChapitre {...temps[3]} id="titre-conclusion" />
+        <div class:list={[texte, "mt-6"]}>
+          <p>
+            Coupons la période en deux moitiés de dix ans. Aux deux stations, la seconde est plus chaude que la première,
+            du même ordre de grandeur, et les journées à 30&nbsp;°C ou plus sont nettement plus nombreuses.
+          </p>
+        </div>
+
+        <div class={`${largeur} mt-8 overflow-x-auto`}>
+          <table class="w-full min-w-xl border-collapse text-left">
+            <caption class="repere pb-2 text-left text-graphite">
+              Deux décennies comparées · {entier(joursCommuns)} jours renseignés aux deux stations
+            </caption>
+            <thead>
+              <tr class="repere border-b-2 border-encre text-graphite">
+                <th scope="col" class="py-2 pr-4 font-medium">Station</th>
+                <th scope="col" class="px-4 py-2 font-medium">Moyenne des maximales</th>
+                <th scope="col" class="px-4 py-2 font-medium">Journées à 30 °C ou plus</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                STATIONS.map((s) => {
+                  const k = s === "Mulhouse" ? "mulhouse" : "colmar";
+                  const avant = d1[k];
+                  const apres = d2[k];
+                  return (
+                    <tr class="border-b border-trait align-top">
+                      <th scope="row" class="py-4 pr-4">
+                        <span class="flex items-center gap-2">
+                          <span aria-hidden="true" class="h-2.5 w-2.5 rounded-full" style={`background:${couleurStation[s]}`} />
+                          <span class="font-semibold">{s}</span>
+                        </span>
+                      </th>
+                      <td class="px-4 py-4">
+                        <span class="titre block text-3xl font-bold">{degSigne(hausseDecennie(s))}</span>
+                        <span class="mt-1 block text-sm text-graphite">
+                          {d1.libelle} : {deg(avant.txMoyenne, 2)} → {d2.libelle} : {deg(apres.txMoyenne, 2)}
+                        </span>
+                      </td>
+                      <td class="px-4 py-4">
+                        <span class="titre block text-3xl font-bold">{avant.jours30} → {apres.jours30}</span>
+                        <span class="mt-1 block text-sm text-graphite">
+                          {pct((avant.jours30 / avant.joursTotal) * 100, 1)} puis {pct((apres.jours30 / apres.joursTotal) * 100, 1)} des
+                          jours renseignés
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class:list={[texte, "mt-12"]}>
+          <p>
+            Et votre année&nbsp;? La canicule de 2003, l'hiver 2010, l'été 2022… Choisissez-la sur la carte pour voir si
+            chaque station était au-dessus ou en dessous de sa moyenne. Le jour le plus chaud des vingt ans reste le
+            {dateRecord}&nbsp;: {deg(jourRecord.colmar!)} à Colmar-Meyenheim, {deg(jourRecord.mulhouse!)} à Mulhouse.
+          </p>
+        </div>
+
+        <ChartCard chart={carteAnomalies(anneeDefaut)} id="graphique-carte" numero={5} interactif="carte" class={`${largeur} mt-10 [&_svg]:mx-auto`}>
+          <div slot="filtres">
+            <label for="filtre-carte" class={labelClass}>Année à afficher</label>
+            <select id="filtre-carte" data-filtre class={selectClass}>
+              {annees.map((a) => <option selected={a === anneeDefaut}>{a}</option>)}
+            </select>
+          </div>
+          <table class="tableau">
+            <caption class="sr-only">Moyenne annuelle, référence et anomalie de chaque station pour l'année choisie</caption>
+            <thead>
+              <tr>
+                <th scope="col">Station</th><th scope="col">Année</th><th scope="col">Moyenne annuelle des TX (°C)</th>
+                <th scope="col">Référence 2003-2022 (°C)</th><th scope="col">Anomalie (°C)</th>
+              </tr>
+            </thead>
+            <tbody data-tableau-annee>
+              {
+                pointsAnnee(anneeDefaut).map((p) => (
+                  <tr>
+                    <th scope="row">{p.station}</th>
+                    <td>{p.annee}</td>
+                    <td>{p.txMoyenne.toFixed(2)}</td>
+                    <td>{p.reference.toFixed(2)}</td>
+                    <td>{p.anomalie.toFixed(2)}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </ChartCard>
+
+        <div class="mx-auto mt-16 grid max-w-4xl gap-6 lg:grid-cols-2">
+          <section aria-labelledby="titre-retenir" class="bg-sapin p-6 text-papier sm:p-8">
+            <h3 id="titre-retenir" class="titre text-2xl font-semibold">Ce qu'il faut retenir</h3>
+            <ul class="mt-4 list-disc space-y-3 pl-5 leading-relaxed">
+              <li>
+                Les après-midi de 2013-2022 ont été plus chauds que ceux de 2003-2012 d'environ
+                {deg(hausseDecennie("Mulhouse"), 1)}, à Mulhouse comme à Colmar-Meyenheim.
+              </li>
+              <li>
+                Les journées à 30&nbsp;°C ou plus sont passées de {d1.mulhouse.jours30} à {d2.mulhouse.jours30} à Mulhouse,
+                et de {d1.colmar.jours30} à {d2.colmar.jours30} à Colmar-Meyenheim.
+              </li>
+              <li>
+                La station de Mulhouse est toujours la plus fraîche, mais les deux varient ensemble&nbsp;: {top3.join(", ")}
+                sont {memeTop3 ? "leurs" : "les"} années les plus chaudes{memeTop3 ? "" : " à Mulhouse"}, {plusFraiche} la plus fraîche.
+              </li>
+            </ul>
+          </section>
+          <section aria-labelledby="titre-limites" class="border border-trait bg-panneau p-6 sm:p-8">
+            <h3 id="titre-limites" class="titre text-2xl font-semibold">Les limites de l'enquête</h3>
+            <ul class="mt-4 list-disc space-y-3 pl-5 leading-relaxed text-graphite">
+              <li>
+                Vingt ans, c'est court en climatologie (une « normale » se calcule sur trente ans)&nbsp;: nous comparons deux
+                décennies, nous ne calculons pas de tendance.
+              </li>
+              <li>Deux stations ne résument pas tout le Haut-Rhin, ni toute la ville de Mulhouse.</li>
+              <li>La moyenne annuelle efface les saisons, les nuits et les extrêmes.</li>
+            </ul>
+            <p class="mt-5"><a class="lien font-semibold text-encre" href="/methode/">Comment nous avons fait →</a></p>
+          </section>
+        </div>
+      </section>
+    </div>
+  </article>
 </Layout>
+
+<script>
+  // ---- Les 4 temps : met en avant l'étape en cours de lecture ----
+  const liens = document.querySelectorAll<HTMLAnchorElement>("a.chapitre");
+  const observateurTemps = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        liens.forEach((l) => {
+          if (l.dataset.temps === entry.target.id) l.setAttribute("aria-current", "step");
+          else l.removeAttribute("aria-current");
+        });
+      });
+    },
+    { rootMargin: "-40% 0px -55% 0px" },
+  );
+  document.querySelectorAll("section[id]").forEach((s) => observateurTemps.observe(s));
+</script>
+
+<style>
+  .chapitre[aria-current="step"] {
+    border-color: var(--color-sapin);
+    color: var(--color-encre);
+    font-weight: 600;
+  }
+</style>

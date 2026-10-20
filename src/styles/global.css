@@ -1,1 +1,101 @@
 @import "tailwindcss";
+
+/*
+ * Identité « média de données » : une page d'article sobre, centrée sur la lecture.
+ * Typographie : Fraunces (titres, chiffres), IBM Plex Sans (texte), IBM Plex Mono (repères).
+ *
+ * Palette de CHARTE : papier, encre et vert sapin des Vosges. Volontairement sans
+ * orange, rouge, jaune ni bleu : ces teintes sont réservées aux DONNÉES
+ * (src/lib/palette.ts, couleurs du notebook). Sur ce site, la couleur, c'est la mesure.
+ */
+@theme {
+  --font-titre: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --color-papier: #ffffff;
+  --color-panneau: #f4f3ee;
+  --color-encre: #15171a;
+  --color-graphite: #565b58;
+  --color-trait: #cdc9bd;
+  --color-sapin: #23493c;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
+}
+
+body {
+  color: var(--color-encre);
+  font-family: var(--font-sans);
+  background-color: var(--color-papier);
+}
+
+::selection {
+  background: var(--color-sapin);
+  color: var(--color-papier);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-sapin);
+  outline-offset: 3px;
+}
+
+/* Repère en capitales mono : surtitres, rubriques, numéros de graphique */
+.repere {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.titre {
+  font-family: var(--font-titre);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+
+a.lien {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+a.lien:hover {
+  color: var(--color-sapin);
+  text-decoration-thickness: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Graphiques Observable Plot : rendu par défaut de Plot (fond blanc, police système), comme dans le notebook */
+
+/* Tableaux de données (alternative textuelle aux graphiques) */
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.tableau th,
+.tableau td {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--color-trait);
+  text-align: right;
+}
+.tableau th:first-child,
+.tableau td:first-child {
+  text-align: left;
+}
+.tableau thead th {
+  border-bottom: 2px solid var(--color-encre);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-graphite);
+}
