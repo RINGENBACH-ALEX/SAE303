@@ -37,6 +37,7 @@ const actif = (href: string) => (href === "/" ? path === "/" : path.startsWith(h
 <!doctype html>
 <html lang="fr">
   <head>
+    <script is:inline>document.documentElement.classList.add('avec-js');</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
@@ -54,24 +55,24 @@ const actif = (href: string) => (href === "/" ? path === "/" : path.startsWith(h
       Aller au contenu
     </a>
 
-    <header class="sticky top-0 z-30 border-b border-encre bg-papier">
-      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-8 px-4 sm:px-6">
-        <a href="/" class="group flex items-center gap-2.5 py-2.5">
-          <Logo class="h-12 w-6 shrink-0 text-encre transition group-hover:-translate-y-0.5" />
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="/" class="site-brand group">
+          <Logo class="h-10 w-5 shrink-0 text-encre transition group-hover:-translate-y-0.5" />
           <span class="flex flex-col leading-none">
-            <span class="titre text-2xl font-bold tracking-tight group-hover:underline">Relevé</span>
-            <span class="repere mt-1 hidden text-[10px] text-graphite sm:block">Le climat du Sud-Alsace en données</span>
+            <span class="brand-name">Relevé</span>
+            <span class="repere brand-caption">Le climat du Sud-Alsace en données</span>
           </span>
         </a>
-        <nav aria-label="Navigation principale">
-          <ul class="flex flex-wrap">
+        <nav aria-label="Navigation principale" class="main-nav">
+          <ul>
             {
               liens.map((l) => (
                 <li>
                   <a
                     href={l.href}
                     aria-current={actif(l.href) ? "page" : undefined}
-                    class="flex items-center gap-2 border-b-[3px] border-transparent px-3 py-3.5 text-sm font-medium text-graphite transition hover:text-encre aria-[current=page]:border-sapin aria-[current=page]:text-encre"
+                    class="transition"
                   >
                     {l.couleur && <span aria-hidden="true" class="h-2 w-2 rounded-full" style={`background:${l.couleur}`} />}
                     {l.label}
@@ -88,7 +89,7 @@ const actif = (href: string) => (href === "/" ? path === "/" : path.startsWith(h
       <slot />
     </main>
 
-    <footer aria-label="Pied de page" class="mt-24 bg-encre text-papier">
+    <footer aria-label="Pied de page" class="site-footer mt-24 bg-encre text-papier">
       <div class="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <p class="titre text-3xl font-bold">Relevé</p>
@@ -116,3 +117,14 @@ const actif = (href: string) => (href === "/" ? path === "/" : path.startsWith(h
     </footer>
   </body>
 </html>
+
+<script>
+  // Le sommaire reste sous le véritable en-tête, y compris lorsque la navigation
+  // passe sur deux lignes sur un petit écran ou après un agrandissement du texte.
+  const entete = document.querySelector<HTMLElement>('.site-header');
+  if (entete) {
+    const mesurer = () => document.documentElement.style.setProperty('--hauteur-entete', `${entete.getBoundingClientRect().height}px`);
+    mesurer();
+    new ResizeObserver(mesurer).observe(entete);
+  }
+</script>

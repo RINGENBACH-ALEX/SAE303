@@ -9,9 +9,9 @@ interface Props {
 const { num, nom, titre, id } = Astro.props;
 ---
 
-<header class="mx-auto max-w-2xl">
-  <p class="repere flex items-center gap-3 text-sapin">
-    <span class="grid h-6 w-6 place-items-center rounded-full bg-sapin text-[11px] text-papier">{Number(num)}</span>
+<header class="chapter-opening">
+  <p class="repere chapter-kicker">
+    <span class="chapter-number">{Number(num)}</span>
     {nom}
   </p>
   <h2 id={id} class="titre mt-3 text-3xl font-semibold leading-tight sm:text-[2.6rem]">

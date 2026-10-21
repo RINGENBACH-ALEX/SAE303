@@ -64,6 +64,7 @@ const nombre = (v) => (v === "" || v === undefined || !Number.isFinite(Number(v.
 // ---------------------------------------------------------------------------
 const annuelles = [];
 const controle = [];
+const moisChauds = [];
 
 for (const s of stations) {
   const mensuel = lireCSV(`SH_${s.serie}.csv`)
@@ -89,6 +90,10 @@ for (const s of stations) {
     const mois = valides.filter((d) => d.annee === annee);
     const jours = somme(mois, (d) => joursDuMois(annee, d.mois));
     const complete = mois.length === 12 && new Set(mois.map((d) => d.mois)).size === 12;
+    if (complete) {
+      const maximum = Math.max(...mois.map(d => d.tx));
+      moisChauds.push(...mois.filter(d => d.tx === maximum).map(d => ({ station: s.station, annee, mois: d.mois, tx: d.tx })));
+    }
     annuelles.push({
       station: s.station,
       annee,
@@ -140,6 +145,22 @@ for (const s of stations) {
   }
 }
 const quotidiennes = [...quotidien.values()].sort((a, b) => a.date.localeCompare(b.date));
+const datesCommunes = quotidiennes.filter(d => Number.isFinite(d.mulhouse) && Number.isFinite(d.colmar));
+const records = Array.from({ length: FIN - DEBUT + 1 }, (_, i) => DEBUT + i).map(annee => {
+  const jours = datesCommunes.filter(d => d.date.startsWith(String(annee)));
+  const mulhouse = Math.max(...jours.map(d => d.mulhouse));
+  const meyenheim = Math.max(...jours.map(d => d.colmar));
+  return { annee, mulhouse, meyenheim, ecart: arrondi(mulhouse - meyenheim), joursCommuns: jours.length,
+    datesMulhouse: jours.filter(d => d.mulhouse === mulhouse).map(d => d.date).join(', '),
+    datesMeyenheim: jours.filter(d => d.colmar === meyenheim).map(d => d.date).join(', ') };
+});
+// Calcul sur les moyennes non arrondies ; arrondi seulement lors de l’export.
+const decennies = stations.flatMap(s => [2003, 2013].map(debut => {
+  const lignes = annuelles.filter(d => d.station === s.station && d.annee >= debut && d.annee <= debut + 9 && Number.isFinite(d.txMoyenne));
+  return { station: s.station, periode: `${debut}–${debut + 9}`, total: lignes.length,
+    chaudes: lignes.filter(d => d.anomalie > 0).length,
+    moyenne: arrondi(somme(lignes, d => d.txMoyenne) / lignes.length) };
+}));
 
 // TX extrêmes de chaque année (notebook : extremesMulhouse) : la plus élevée et la plus
 // basse des maximales quotidiennes, avec toutes les dates où elle a été atteinte.
@@ -203,3 +224,6 @@ ecrire("tx-quotidiennes.json", quotidiennes);
 ecrire("tx-extremes.json", extremes);
 ecrire("controle.json", controle);
 ecrire("haut-rhin.json", hautRhin);
+ecrire("mois-chauds.json", moisChauds);
+ecrire("decennies.json", decennies);
+ecrire("records.json", records);

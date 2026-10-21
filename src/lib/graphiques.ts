@@ -95,10 +95,10 @@ export function extremesStation(station: Station): Chart {
   const froid = basses.reduce((a, b) => (b.tx < a.tx ? b : a));
   const incomplete = data.find((d) => d.joursMesures < 365);
   return {
-    titre: `${station} : les TX extrêmes de chaque année`,
+    titre: `${station} : jusqu’où montent les températures maximales chaque année ?`,
     sousTitre: "2003–2022 · Températures en °C · Dates au survol",
-    label: `Tableau coloré de 2003 à 2022 pour ${station} : sur la ligne du haut, la température maximale quotidienne la plus élevée de chaque année ; sur celle du bas, la plus basse. Record : ${deg(record.tx)} le ${record.dates}. Journée la plus froide : ${deg(froid.tx)} le ${froid.dates}.`,
-    legende: `Pour chaque année, la plus haute et la plus basse des températures maximales quotidiennes ; couleur du bleu (froid) au rouge (chaud). Les dates s'affichent au survol.${
+    label: `Tableau coloré de 2003 à 2022 pour ${station} : sur la ligne du haut, la température maximale quotidienne la plus élevée de chaque année ; sur celle du bas, la plus basse. Record : ${deg(record.tx)} le ${record.dates}. Plus basse des températures maximales : ${deg(froid.tx)} le ${froid.dates}. Il ne s’agit pas de la température minimale nocturne.`,
+    legende: `En haut : le record de chaleur de chaque année. En bas : la journée où la température maximale est restée la plus basse, et non la température la plus basse de la nuit. Les dates sont disponibles au survol et dans le tableau des chiffres.${
       incomplete ? ` En ${incomplete.annee}, seuls ${incomplete.joursMesures} jours sont mesurés (février manquant).` : ""
     }`,
     source: "Météo-France, séries quotidiennes de référence SQR_TX (Q_SQR = 1), 2003–2022",

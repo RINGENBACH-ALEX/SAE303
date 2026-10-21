@@ -7,6 +7,7 @@ import PillNav from "../../components/PillNav.astro";
 import { stations, serieDe, reperes, quotidiennes, cleQuotidienne, deg, degSigne, entier } from "../../lib/donnees";
 import { barresAnnuelles, extremesStation } from "../../lib/graphiques";
 import { couleurStation, type Station } from "../../lib/palette";
+import txExtremes from "../../data/tx-extremes.json";
 
 export const getStaticPaths = (() => stations.map((s) => ({ params: { station: s.slug } }))) satisfies GetStaticPaths;
 
@@ -16,6 +17,7 @@ const autre = stations.find((s) => s !== fiche)!;
 const serie = serieDe(nom);
 const { min, max, reference } = reperes(nom);
 const cle = cleQuotidienne(nom);
+const extremes = txExtremes.filter(d => d.station === nom);
 const mesures = quotidiennes.filter((d) => d[cle] !== null);
 const record = mesures.reduce((a, b) => ((b[cle] as number) > (a[cle] as number) ? b : a));
 const dateLongue = (d: string) =>
@@ -33,9 +35,9 @@ const links = stations.map((s) => ({
   title={`Station ${nom}`}
   description={`Fiche de la station Météo-France ${nom} (${fiche.numero}) : moyenne annuelle des températures maximales de 2003 à 2022.`}
 >
-  <div class="mx-auto max-w-4xl px-4 pt-12 sm:px-6 sm:pt-16">
+  <div class="document-page station-page mx-auto">
     <p class="repere text-graphite">
-      Fiche station · Météo-France n° {fiche.numero} · <a href="/#exploration" class="text-sapin underline-offset-4 hover:underline">← retour à l'enquête</a>
+      Fiche station · Météo-France n° {fiche.numero} · <a href="/#exploration" class="text-sapin underline underline-offset-4 hover:underline">← retour à l'enquête</a>
     </p>
     <h1 class="titre mt-4 flex flex-wrap items-baseline gap-x-4 text-5xl font-bold leading-none sm:text-7xl">
       <span aria-hidden="true" class="inline-block h-6 w-6 self-center rounded-full sm:h-8 sm:w-8" style={`background:${couleurStation[nom]}`}></span>
@@ -52,7 +54,7 @@ const links = stations.map((s) => ({
             ["Commune", fiche.commune],
             ["Altitude", `${fiche.altitude} m`],
             ["Coordonnées", `${fiche.latitude.toFixed(2).replace(".", ",")}° N, ${fiche.longitude.toFixed(2).replace(".", ",")}° E`],
-            ["Moyenne 2003–2022 des TX", deg(reference, 2)],
+            ["Moyenne des maximales, 2003–2022", deg(reference, 2)],
             ["Année la plus chaude", `${max.annee} (${deg(max.txMoyenne, 2)})`],
             ["Année la plus fraîche", `${min.annee} (${deg(min.txMoyenne, 2)})`],
             ["Journée la plus chaude", `${dateLongue(record.date)} (${deg(record[cle] as number)})`],
@@ -69,9 +71,8 @@ const links = stations.map((s) => ({
     <section aria-labelledby="titre-annees" class="mt-16 border-t-2 border-encre pt-6">
       <p class="repere text-sapin">Vingt ans de mesures</p>
       <h2 id="titre-annees" class="titre mt-2 text-3xl font-semibold leading-tight sm:text-4xl">Vingt années de températures maximales</h2>
-      <p class="mt-4 max-w-3xl text-lg leading-relaxed">
-        Les deux graphiques du notebook pour cette station : la moyenne annuelle des maximales en barres, puis la journée la plus chaude et la plus froide de chaque année (dates au survol).
-      </p>
+      <p class="mt-4 max-w-3xl text-lg leading-relaxed">Le premier graphique montre la moyenne des températures maximales de chaque année : la moyenne des températures les plus hautes mesurées chaque jour. Le second montre jusqu’où ces maximales sont montées ou restées basses dans l’année.</p>
+          <p class="mt-4 max-w-3xl text-lg leading-relaxed">Une maximale basse décrit une journée fraîche, pas la température la plus basse de la nuit. Retrouvez la comparaison des deux stations dans <a class="lien underline" href="/#exploration">l’enquête</a>.</p>
       <ChartCard chart={{ ...barresAnnuelles(nom), route: "C" }} id={`graphique-barres-${fiche.slug}`} numero={1} interactif="barres" valeur={nom} class="mt-10">
         <table class="tableau">
           <caption class="sr-only">Moyennes annuelles des températures maximales à {nom}</caption>
@@ -99,17 +100,22 @@ const links = stations.map((s) => ({
           </tbody>
         </table>
       </ChartCard>
-      <ChartCard chart={{ ...extremesStation(nom), route: "C" }} id={`graphique-extremes-${fiche.slug}`} numero={2} interactif="extremes" valeur={nom} class="mt-14" />
+      <ChartCard chart={{ ...extremesStation(nom), route: "C" }} id={`graphique-extremes-${fiche.slug}`} numero={2} interactif="extremes" valeur={nom} class="mt-14">
+        <table class="tableau">
+          <caption class="sr-only">Températures maximales extrêmes de chaque année à {nom}, avec leurs dates et le nombre de jours disponibles</caption>
+          <thead><tr><th scope="col">Année</th><th scope="col">Valeur recherchée</th><th scope="col">Température (°C)</th><th scope="col">Date(s)</th><th scope="col">Jours disponibles</th></tr></thead>
+          <tbody>{extremes.map(d => <tr><th scope="row">{d.annee}</th><td>{d.indicateur === 'TX la plus élevée' ? 'Maximale la plus élevée' : 'Maximale la plus basse'}</td><td>{d.tx.toFixed(2).replace('.', ',')}</td><td>{d.dates}</td><td>{entier(d.joursMesures)}</td></tr>)}</tbody>
+        </table>
+      </ChartCard>
     </section>
 
     <section aria-labelledby="titre-suite" class="mt-14 border-l-4 border-sapin bg-panneau p-6 sm:p-8">
       <p class="repere text-sapin">Méthode</p>
       <h2 id="titre-suite" class="titre mt-2 text-2xl font-semibold">Pourquoi une page par station&nbsp;?</h2>
       <p class="mt-2 max-w-3xl leading-relaxed text-graphite">
-        Il n'y a que deux valeurs possibles, qui ne changent pas&nbsp;: chaque fiche est générée au build, a sa propre
-        adresse à partager, et s'affiche sans JavaScript. Voir aussi la fiche de
+        Chaque station possède sa propre fiche, avec une adresse que vous pouvez partager. Les graphiques sont déjà visibles à l’ouverture de la page ; les détails au survol s’ajoutent ensuite. Vous pouvez aussi consulter la fiche de
         <a class="lien font-semibold text-encre" href={`/stations/${autre.slug}/`}>{autre.station}</a> et la
-        <a class="lien font-semibold text-encre" href="/methode/#routes">justification des routes d'export</a>.
+        <a class="lien font-semibold text-encre" href="/methode/#routes">page expliquant comment les graphiques s’affichent</a>.
       </p>
     </section>
   </div>

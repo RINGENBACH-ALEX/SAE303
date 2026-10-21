@@ -5,25 +5,26 @@ import { controle, stations, joursCommuns, entier } from "../lib/donnees";
 import { fichiers, geojson } from "../lib/fichiers";
 import { couleurStation, divergente, type Station } from "../lib/palette";
 import { NOTEBOOK, DEPOT } from "../lib/site";
+import { aererTexte } from "../lib/lecture.js";
 
 const sources = [
   {
     jeu: "Longues Séries Homogénéisées (LSH) — SH_TX",
-    contenu: "Moyennes mensuelles homogénéisées de la température maximale quotidienne",
+    contenu: "Moyennes par mois des températures maximales de chaque jour, corrigées par Météo-France pour limiter les effets des changements d’instrument ou de lieu de mesure. C’est ce que signifie « homogénéisées ».",
     fichiers: "SH_MTX268224006.csv, SH_MTX268205001.csv (archive SH_TX_metropole.zip)",
     date: "Fichiers produits par Météo-France le 13/03/2025 ; période homogénéisée jusqu'à décembre 2022",
     url: "https://www.data.gouv.fr/datasets/donnees-changement-climatique-lsh-longues-series-homogeneisees/",
   },
   {
     jeu: "Séries Quotidiennes de Référence (SQR) — SQR_TX",
-    contenu: "Température maximale de chaque jour, associée aux séries homogénéisées",
+    contenu: "Température la plus haute de chaque journée, utilisée ici pour rechercher les records. Ces séries quotidiennes de référence ne sont pas des séries quotidiennes homogénéisées.",
     fichiers: "SQR_MTX268224006.csv, SQR_MTX268205001.csv (archive SQR_TX_metropole.zip)",
     date: "Fichiers produits par Météo-France le 13/03/2025 ; période de référence jusqu'au 31/12/2022",
     url: "https://www.data.gouv.fr/datasets/donnees-changement-climatique-sqr-series-quotidiennes-de-reference/",
   },
   {
     jeu: "Informations sur les stations (métadonnées)",
-    contenu: "Identifiant, nom, coordonnées, altitude, date d'ouverture",
+    contenu: "Informations permettant d’identifier et de situer les stations : numéro, nom, position, altitude et date d’ouverture.",
     fichiers: "Liste des stations d'observation (métropole et outre-mer)",
     date: "Version du 08/07/2025",
     url: "https://www.data.gouv.fr/datasets/informations-sur-les-stations-metadonnees/",
@@ -34,48 +35,52 @@ const routes = [
   {
     id: "route-a",
     lettre: "A",
-    nom: "Au build",
-    ou: "Graphique 3 : comparaison des deux stations (notebook § 4.2)",
+    nom: "Préparé à la publication (au build)",
+    ou: "Graphiques 2 et 3 : mois les plus souvent chauds ; graphique 6 : comparaison des deux périodes de dix ans",
     pourquoi:
-      "C'est le graphique de la révélation : il est le même pour tous les lecteurs et n'a rien à filtrer, puisqu'il montre justement les deux stations ensemble. Plot le dessine une fois au build (jsdom) : le navigateur reçoit un SVG prêt, sans JavaScript, lisible même si les scripts sont bloqués.",
+      "Ces graphiques montrent les mêmes résultats à tout le monde. Ils sont préparés une seule fois lors de la publication du site : votre appareil reçoit directement le dessin, adapté à la taille de l’écran. Aucun choix n’est nécessaire pour les lire. Les valeurs restent disponibles même lorsque les scripts du navigateur sont désactivés.",
   },
   {
     id: "route-b",
     lettre: "B",
-    nom: "Chez le lecteur",
-    ou: "Graphique 1 (barres YlOrRd pour Mulhouse, Blues pour Colmar-Meyenheim, filtre station), graphique 2 (TX extrêmes de chaque année, filtre station), graphique 4 (anomalies, filtre stations affichées), graphique 5 (carte, filtre année)",
+    nom: "Interactif dans votre navigateur (chez le lecteur)",
+    ou: "Graphique 1 : carte avec choix de l’année ; graphiques 4 et 5 : comparaison des records avec détails au survol",
     pourquoi:
-      "Ici, oui, ça doit bouger chez le lecteur : il choisit une station pour comparer sur la même échelle, isole une courbe d'anomalies, ou cherche « son » année sur la carte (le sélecteur Inputs.select du notebook). Comme la carte GeoJSON côté client du TP7, un <select> recalcule les options et Plot redessine, sans recharger la page. Les données utiles sont petites (40 moyennes annuelles, deux stations, un contour) : elles partent avec le script, chargé seulement à l'approche des graphiques. Le build rend la valeur par défaut (Mulhouse, 2022) en repli sans JavaScript.",
+      "Vous pouvez changer l’année de la carte, affichée sur 2022 au départ, sans recharger la page. Les couleurs gardent le même sens d’une année à l’autre. Sur les graphiques des records, vous pouvez afficher des détails en passant sur une barre. Votre navigateur reçoit seulement les résultats nécessaires. Une première image reste visible sans script ; les tableaux permettent aussi de lire les valeurs sur téléphone ou au clavier.",
   },
   {
     id: "route-c",
     lettre: "C",
-    nom: "Une page par valeur",
-    ou: "Les fiches station : /stations/mulhouse/ et /stations/colmar-meyenheim/, avec les graphiques 1 et 2 pour chaque station",
+    nom: "Une page par station (une page par valeur)",
+    ou: "Les fiches de Mulhouse et de Colmar-Meyenheim, chacune avec ses graphiques de moyennes annuelles et de températures extrêmes",
     pourquoi:
-      "Deux valeurs seulement, stables, que l'on a envie de citer ou de partager : chaque station mérite une adresse propre. getStaticPaths() génère une page HTML par station au build ; pas besoin d'interaction côté lecteur.",
+      "Chaque station possède sa propre adresse pour pouvoir consulter ou partager directement sa fiche. Les deux pages sont préparées lors de la publication, sans devoir choisir une station dans un menu. Leurs graphiques restent visibles sans script ; les détails au survol sont ensuite ajoutés dans le navigateur, selon le même principe que la route B.",
   },
 ];
 
 const traitements = [
-  "Extraction, dans les archives nationales, des 4 fichiers des deux stations (séries MTX268224006 et MTX268205001) ; lignes de commentaire « # » retirées.",
-  "Filtrage sur 2003–2022 inclus et sur les codes qualité 1 (Q_HOM = 1 pour les séries mensuelles, Q_SQR = 1 pour les quotidiennes) : seules les données homogénéisées ou de référence sont gardées.",
-  "Moyenne annuelle des TX : chaque moyenne mensuelle est pondérée par le nombre de jours du mois, puis la somme est divisée par le nombre de jours de l'année (365 ou 366). Une année n'est calculée que si ses 12 mois sont présents (c'est le cas des 20 années).",
-  "Référence propre à chaque station : moyenne de ses 20 moyennes annuelles. Anomalie = moyenne de l'année − référence. Ce n'est pas une « normale » climatologique (calculée sur 30 ans).",
-  `Données quotidiennes : seules les journées renseignées aux deux stations sont comparées (${entier(joursCommuns)} jours). Les 28 jours manquants de février 2015 à Mulhouse ne sont ni remplacés ni estimés : ils sont retirés des deux côtés.`,
-  "TX extrêmes : pour chaque année, la plus haute et la plus basse des températures maximales quotidiennes de la station, avec toutes les dates où elles ont été atteintes. Seuls les jours mesurés comptent : en 2015, février manque à Mulhouse, donc sa « TX la plus basse » de 2015 sous-estime le froid de l'année.",
-  "Journées à 30 °C ou plus : comptées sur les journées communes aux deux stations, pour chaque décennie ; le nombre de jours renseignés (dénominateur) est indiqué à côté.",
-  "Arrondi à deux décimales au moment d'écrire les fichiers, après tous les calculs.",
+  "Nous conservons uniquement les fichiers de Mulhouse et de Colmar-Meyenheim, puis les années 2003 à 2022. Les textes d’explication inclus dans les fichiers Météo-France sont séparés des lignes de mesures.",
+  "Nous vérifions que la température est renseignée et que le code qualité de Météo-France vaut 1 dans la série utilisée : Q_HOM pour les moyennes mensuelles, Q_SQR pour les mesures quotidiennes. Un code qualité à 1 ne suffit pas si la température elle-même manque.",
+  "Pour obtenir une moyenne annuelle, nous tenons compte de la durée de chaque mois : un mois de 31 jours compte davantage qu’un mois de 28 jours. Le total est divisé par 365 ou 366 jours. Le calcul exige les douze mois ; c’est le cas des vingt années dans les deux stations.",
+  "Pour chaque station, nous calculons la moyenne de ses vingt moyennes annuelles. Elle sert de référence. L’écart entre une année et cette référence est appelé anomalie : positif si l’année est plus chaude, négatif si elle est plus fraîche. Cette référence de vingt ans diffère d’une « normale climatique », habituellement calculée sur trente ans.",
+  `Pour comparer les records, nous retenons les mêmes ${entier(joursCommuns)} journées utilisables dans les deux stations. Les 28 jours de février 2015 manquent à Mulhouse : nous écartons donc ces dates des deux côtés, sans remplacer les températures manquantes.`,
+  "Dans les fiches station, nous montrons aussi la plus haute et la plus basse des températures maximales quotidiennes de chaque année. La seconde décrit une journée où même la température la plus haute est restée basse ; ce n’est pas la température minimale, appelée TN. À Mulhouse, les résultats de 2015 portent sur les jours disponibles, car février manque.",
+  "Pour les mois les plus chauds, nous cherchons le mois dont la moyenne des températures maximales arrive en tête chaque année. Tous les mois à égalité sont comptés. Cela donne 21 mois comptés pour 20 années dans chaque station : juin 4, juillet 9, août 8 à Mulhouse ; juin 4, juillet 7, août 10 à Colmar-Meyenheim.",
+  "Nous comparons ensuite deux périodes de dix ans à la même référence de chaque station. Les nombres d’années et les moyennes affichés sont repris des résultats du carnet d’analyse. La différence d’environ 0,98 °C concerne les moyennes de ces deux périodes ; ce n’est pas une hausse annuelle ni une prévision.",
+  "Pour chaque année, nous soustrayons le record de Colmar-Meyenheim à celui de Mulhouse. Les deux records sont recherchés parmi les mêmes journées disponibles, mais peuvent dater de jours différents. Les deux graphiques gardent une échelle de −2,5 à +2,5 °C, choisie à partir des vingt écarts, pour permettre leur comparaison.",
+  "Sur la carte, chaque station est associée au contour de sa commune grâce au numéro INSEE : 68224 pour Mulhouse et 68241 pour Oberentzen. La couleur représente l’écart à la moyenne 2003–2022 de la station, pas une moyenne de toute la commune. Les autres communes restent grises. L’échelle reste fixée de −2,5 à +2,5 °C pour toutes les années.",
+  "Les calculs sont effectués avant l’arrondi des résultats. Les températures sont ensuite arrondies à deux chiffres après la virgule pour leur publication. Les nombres de jours, de mois et d’années restent des nombres entiers.",
 ];
 
 const limites = [
-  ["Période courte", "20 ans ne suffisent pas à établir une tendance climatique. Nous comparons deux décennies, sans calculer de pente ni de significativité."],
+  ["Période courte", "Nous décrivons les différences entre deux périodes de dix ans. Cela ne suffit pas à mesurer une tendance climatique de long terme, ni à prouver que la température augmente régulièrement chaque année."],
   ["Deux points de mesure", "Une station décrit son abri et ses environs immédiats. Elle ne représente ni toute la ville de Mulhouse, ni tout le Haut-Rhin."],
-  ["Ville contre campagne", "L'écart entre stations peut venir de l'altitude (38 m), de l'exposition, du sol ou de l'histoire des sites : nos données ne permettent pas d'isoler un effet d'îlot de chaleur urbain."],
-  ["Indicateur unique", "La moyenne annuelle des maximales efface les saisons, les nuits (température minimale) et les extrêmes : seul le décompte des journées à 30 °C ou plus en donne une idée."],
-  ["Homogénéisation", "Les séries homogénéisées corrigent les ruptures (changement d'abri, de capteur, de site) par des méthodes statistiques : ce sont des séries reconstruites, pas des relevés bruts."],
-  ["Position des stations", "La carte montre la position actuelle des stations ; d'éventuels déplacements passés ne sont pas représentés (ils sont pris en compte par l'homogénéisation)."],
-  ["Couleurs", "Le bleu désigne à la fois Colmar-Meyenheim (courbes) et les anomalies négatives (carte), comme dans le notebook : sur la carte, chaque point porte donc le nom de sa station."],
+  ["Ville contre campagne", "Les stations ont 38 mètres de différence d’altitude. Leur exposition, les sols et les changements intervenus sur les sites peuvent aussi jouer. Nous ne pouvons donc pas attribuer leurs écarts à la seule différence entre ville et campagne."],
+  ["Des mesures qui ne racontent pas la même chose", "Une moyenne annuelle, un mois chaud et une journée record répondent à des questions différentes. Les températures maximales ne décrivent pas les températures les plus basses de la nuit. Compter les mois les plus chauds ne prouve pas non plus que les saisons se décalent."],
+  ["Pourquoi corriger les moyennes mensuelles ?", "Un changement d’appareil ou de lieu de mesure peut modifier une série sans que le climat ait changé. Météo-France ajuste les séries mensuelles pour limiter ces effets : c’est l’homogénéisation. Nous utilisons ces séries corrigées pour les moyennes, et les séries quotidiennes de référence pour les records."],
+  ["Portée de la carte", "Les communes colorées situent les stations et leurs anomalies ; elles ne représentent pas une température uniforme sur la commune. Les déplacements historiques des stations ne sont pas représentés."],
+  ["Couleurs", "La légende de chaque graphique explique le sens des couleurs. Les couleurs de la carte ne changent pas de sens lorsque vous choisissez une autre année. Les deux graphiques de records partagent eux aussi la même échelle."],
+  ["Ce qui a été revérifié pour le site", "Les records ont été recalculés à partir des températures quotidiennes disponibles dans le projet. Les mois retenus et les moyennes des périodes de dix ans proviennent de la retranscription du carnet d’analyse du binôme. Ils n’ont pas été recalculés ici à partir des séries mensuelles complètes. Les écarts annuels à la moyenne proviennent des résultats déjà enregistrés dans le projet."],
 ];
 ---
 
@@ -83,24 +88,25 @@ const limites = [
   title="Méthode"
   description="Sources, licences, traitements, limites et données téléchargeables de l'enquête sur les températures maximales à Mulhouse et Colmar-Meyenheim."
 >
-  <div class="mx-auto max-w-4xl px-4 pt-12 sm:px-6 sm:pt-16">
+  <div class="document-page mx-auto">
     <p class="repere text-sapin">Méthode</p>
     <h1 class="titre mt-4 text-4xl font-bold leading-[1.05] sm:text-6xl">Comment nous avons fait</h1>
     <p class="mt-8 text-lg leading-relaxed">
       Sources, calculs, choix de représentation, limites&nbsp;: cette page décrit comment chaque chiffre de l'enquête a été
       obtenu. Les fichiers utilisés par les graphiques sont téléchargeables en bas de page, et l'analyse complète est
-      dans le <a class="lien font-bold" href={NOTEBOOK}>notebook Observable</a>.
+      dans notre <a class="lien font-bold" href={NOTEBOOK}>carnet d’analyse sur Observable</a>, qui rassemble les calculs et les explications détaillées.
     </p>
 
-    <nav aria-label="Sommaire de la page" class="mt-10 border-y-2 border-encre bg-panneau px-5 py-5">
+    <nav aria-label="Sommaire de la page" class="document-summary mt-10">
       <ol class="repere grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
         <li><a class="lien" href="#sources">1. Sources, dates et licences</a></li>
-        <li><a class="lien" href="#traitements">2. Traitements appliqués</a></li>
+        <li><a class="lien" href="#traitements">2. Préparation des chiffres</a></li>
         <li><a class="lien" href="#controle">3. Contrôle de qualité</a></li>
-        <li><a class="lien" href="#routes">4. Routes d'export des graphiques</a></li>
+        <li><a class="lien" href="#routes">4. Affichage des graphiques : A, B et C</a></li>
         <li><a class="lien" href="#limites">5. Limites et biais</a></li>
         <li><a class="lien" href="#design">6. Couleurs et accessibilité</a></li>
         <li><a class="lien" href="#donnees">7. Données téléchargeables</a></li>
+        <li><a class="lien" href="#journal-ia">8. Utilisation de l’IA et positionnement</a></li>
       </ol>
     </nav>
 
@@ -128,16 +134,15 @@ const limites = [
           ))
         }
         <article class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
-          <h3 class="titre text-lg font-semibold">Contour du Haut-Rhin</h3>
+          <h3 class="titre text-lg font-semibold">Communes du Haut-Rhin</h3>
           <p class="mt-2 text-sm">
             <a class="lien" href="https://github.com/gregoiredavid/france-geojson">france-geojson</a> (Grégoire David),
-            d'après IGN Admin Express (Licence Ouverte) et le Code officiel géographique de l'Insee ; coordonnées
-            arrondies au millième de degré (≈ 100 m).
+            — <a class="lien" href="https://github.com/gregoiredavid/france-geojson/blob/master/departements/68-haut-rhin/communes-68-haut-rhin.geojson">contours des 366 communes</a>, sous Licence Ouverte. Carte récupérée le 21 octobre 2026. Ce fond ancien sert à situer les stations ; il ne représente pas nécessairement les limites administratives actuelles.
           </p>
         </article>
       </div>
       <h3 class="titre mt-10 text-xl font-semibold">Stations retenues</h3>
-      <div class="mt-3 overflow-x-auto">
+      <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label="Identifiants des stations">
         <table class="tableau">
           <thead>
             <tr><th scope="col">Station</th><th scope="col">Numéro</th><th scope="col">Série</th><th scope="col">Commune</th><th scope="col">Altitude</th></tr>
@@ -161,24 +166,25 @@ const limites = [
 
     <!-- 2 -->
     <section id="traitements" aria-labelledby="titre-traitements" class="mt-20 border-t-2 border-encre pt-6">
-      <h2 id="titre-traitements" class="titre text-3xl font-semibold sm:text-4xl">2. Traitements appliqués</h2>
+      <h2 id="titre-traitements" class="titre text-3xl font-semibold sm:text-4xl">2. Comment nous avons préparé les chiffres</h2>
       <ol class="mt-6 list-decimal space-y-3 pl-6 leading-relaxed">
-        {traitements.map((t) => <li>{t}</li>)}
+        {traitements.map((t) => <li>{aererTexte(t).map(partie => <p>{partie}</p>)}</li>)}
       </ol>
       <p class="mt-6 leading-relaxed">
-        Les calculs sont ceux du <a class="lien font-bold" href={NOTEBOOK}>notebook</a>, repris à l'identique dans
-        <a class="lien" href={`${DEPOT}/blob/main/scripts/preparer-donnees.mjs`}><code>scripts/preparer-donnees.mjs</code></a>.
-        Les fichiers bruts du défi ne sont pas dans le dépôt&nbsp;: pour tout refaire, télécharger les deux archives,
-        en extraire les quatre CSV des stations et lancer <code>node scripts/preparer-donnees.mjs &lt;dossier&gt;</code>.
-        Les textes du site ne recopient aucun nombre à la main&nbsp;: ils sont calculés au build à partir de ces fichiers.
+        Vous pouvez retrouver les calculs dans le <a class="lien font-bold" href={NOTEBOOK}>carnet d’analyse</a> et télécharger les résultats en bas de cette page. Le site conserve seulement les données utiles aux deux stations et à la période étudiée, sans les grandes archives nationales d’origine.
       </p>
+      <details class="group mt-3">
+        <summary class="repere cursor-pointer text-sapin hover:underline">Pour reproduire les calculs : détails techniques</summary>
+        <p class="mt-3 leading-relaxed">Le <a class="lien" href={`${DEPOT}/blob/main/scripts/preparer-donnees.mjs`}>script de préparation</a> lit les quatre CSV des deux stations, extraits des archives Météo-France, et le contour départemental. Commande : <code>node scripts/preparer-donnees.mjs &lt;dossier&gt;</code>. Il calcule avant arrondi les moyennes annuelles, les résultats par décennie, les mois les plus chauds et les records.</p>
+          <p class="mt-3 leading-relaxed">Les résultats mensuels repris sur ce site restent à comparer aux séries mensuelles complètes ; la comparaison visuelle directe avec le carnet reste également à effectuer.</p>
+      </details>
     </section>
 
     <!-- 3 -->
     <section id="controle" aria-labelledby="titre-controle" class="mt-20 border-t-2 border-encre pt-6">
       <h2 id="titre-controle" class="titre text-3xl font-semibold sm:text-4xl">3. Contrôle de qualité</h2>
-      <p class="mt-4 leading-relaxed">Sur 2003–2022, chaque station doit avoir 240 valeurs mensuelles et 7 305 valeurs quotidiennes.</p>
-      <div class="mt-4 overflow-x-auto">
+      <p class="mt-4 leading-relaxed">Sur vingt ans, nous attendons 240 moyennes par mois et 7 305 températures quotidiennes par station. Le tableau distingue les lignes présentes des températures réellement renseignées : à Mulhouse, 28 lignes ne contiennent pas de température en février 2015, même si leur code qualité vaut 1.</p>
+      <div class="mt-4 overflow-x-auto" tabindex="0" role="region" aria-label="Contrôle de complétude des séries">
         <table class="tableau">
           <thead>
             <tr>
@@ -203,10 +209,9 @@ const limites = [
 
     <!-- 4 -->
     <section id="routes" aria-labelledby="titre-routes" class="mt-20 border-t-2 border-encre pt-6">
-      <h2 id="titre-routes" class="titre text-3xl font-semibold sm:text-4xl">4. Routes d'export des graphiques</h2>
+      <h2 id="titre-routes" class="titre text-3xl font-semibold sm:text-4xl">4. Comment les graphiques s’affichent</h2>
       <p class="mt-4 leading-relaxed">
-        La question qui tranche&nbsp;: <strong>est-ce que ça doit bouger chez le lecteur&nbsp;?</strong> Si non, le
-        graphique est calculé une fois pour toutes. Chaque figure du site porte une pastille qui renvoie ici.
+        <strong>Avez-vous besoin de choisir une année ou d’afficher des détails ?</strong> Cette question guide notre choix technique, appelé « route d’export » : A pour un graphique préparé à la publication, B pour une interaction dans votre navigateur, C pour une page propre à chaque station. Le lien « Méthode » sous chaque graphique explique le choix retenu.
       </p>
       <div class="mt-6 space-y-4">
         {
@@ -217,7 +222,7 @@ const limites = [
                 Route {r.lettre} · {r.nom}
               </h3>
               <p class="mt-3 text-sm text-graphite"><strong class="text-encre">Utilisée pour&nbsp;:</strong> {r.ou}</p>
-              <p class="mt-2 leading-relaxed">{r.pourquoi}</p>
+              <div class="reading-stack mt-2 leading-relaxed">{aererTexte(r.pourquoi).map(partie => <p>{partie}</p>)}</div>
             </article>
           ))
         }
@@ -232,7 +237,7 @@ const limites = [
           limites.map(([t, d]) => (
             <div class="border-l-2 border-sapin pl-4">
               <dt class="font-bold">{t}</dt>
-              <dd class="mt-1 leading-relaxed text-graphite">{d}</dd>
+              <dd class="reading-stack mt-1 leading-relaxed text-graphite">{aererTexte(d).map(partie => <p>{partie}</p>)}</dd>
             </div>
           ))
         }
@@ -244,22 +249,20 @@ const limites = [
       <h2 id="titre-design" class="titre text-3xl font-semibold sm:text-4xl">6. Couleurs et accessibilité</h2>
       <div class="mt-6 grid gap-4 sm:grid-cols-2">
         <div class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
-          <h3 class="titre text-lg font-semibold">Palette de charte</h3>
-          <p class="mt-1 text-sm text-graphite">Blanc, encre et vert sapin des Vosges : aucune teinte chaude ni bleue. Typographie Fraunces, IBM Plex Sans et IBM Plex Mono.</p>
+          <h3 class="titre text-lg font-semibold">Couleurs du site : la charte graphique</h3>
+          <p class="mt-1 text-sm text-graphite">Blanc, encre marine, bleu et rouge pour structurer la lecture. Typographie Fraunces, IBM Plex Sans et IBM Plex Mono. Les légendes précisent le sens des palettes propres aux graphiques.</p>
           <ul class="mt-4 flex flex-wrap gap-3 text-xs">
             {
-              [["Papier", "#ffffff"], ["Panneau", "#f4f3ee"], ["Encre", "#15171a"], ["Graphite", "#565b58"], ["Sapin", "#23493c"]].map(([n, c]) => (
+              [["Papier", "#ffffff"], ["Panneau", "#f2f5f8"], ["Encre", "#182b40"], ["Bleu", "#245b85"], ["Rouge", "#a63f38"]].map(([n, c]) => (
                 <li class="flex items-center gap-2"><span aria-hidden="true" class="h-6 w-6 border border-trait" style={`background:${c}`} />{n} <code>{c}</code></li>
               ))
             }
           </ul>
         </div>
         <div class="border border-trait border-t-2 border-t-encre bg-panneau p-5">
-          <h3 class="titre text-lg font-semibold">Palette de données</h3>
-          <p class="mt-1 text-sm text-graphite">
-            Les couleurs du notebook : stations en Okabe-Ito (lisible par les daltoniens), moyennes annuelles en YlOrRd (Mulhouse) et Blues (Colmar-Meyenheim),
-            anomalies de la carte en divergente centrée sur 0.
-          </p>
+          <h3 class="titre text-lg font-semibold">Couleurs des graphiques : les données</h3>
+          <p class="mt-1 text-sm text-graphite">Les couleurs des graphiques ont un sens précis : l’orange distingue les années au-dessus de la moyenne, le gris les autres années ; rouge et bleu distinguent les écarts entre records ou les années plus chaudes et plus fraîches sur la carte.</p>
+          <p class="mt-1 text-sm text-graphite">Les palettes de données restent distinctes des couleurs de présentation du site. Chaque légende précise leur sens.</p>
           <ul class="mt-4 flex flex-wrap gap-3 text-xs">
             {
               stations.map((s) => (
@@ -267,31 +270,31 @@ const limites = [
               ))
             }
           </ul>
-          <p class="mt-4 text-xs text-graphite">Moyennes annuelles : YlOrRd (Mulhouse) et Blues (Colmar-Meyenheim)</p>
+          <p class="mt-4 text-xs text-graphite">Moyennes annuelles des fiches station : du jaune au rouge pour Mulhouse, du bleu clair au bleu foncé pour Colmar-Meyenheim</p>
           <div aria-hidden="true" class="mt-1 h-4" style="background:linear-gradient(to right,#ffffcc,#fed976,#fd8d3c,#e31a1c,#800026)"></div>
           <div aria-hidden="true" class="mt-1 h-4" style="background:linear-gradient(to right,#f7fbff,#c6dbef,#6baed6,#2171b5,#08306b)"></div>
-          <p class="mt-3 text-xs text-graphite">Anomalies (divergente)</p>
+          <p class="mt-3 text-xs text-graphite">Carte : écart à la moyenne 2003–2022 de la station</p>
           <div aria-hidden="true" class="mt-1 h-4" style={`background:linear-gradient(to right,${divergente.join(",")})`}></div>
           <p class="mt-1 flex justify-between text-xs text-graphite"><span>plus frais</span><span>plus chaud</span></p>
         </div>
       </div>
       <ul class="mt-6 list-disc space-y-2 pl-6 leading-relaxed">
-        <li>Chaque graphique est une <code>&lt;figure&gt;</code> nommée par son titre (<code>aria-labelledby</code>), avec un <code>&lt;figcaption&gt;</code> (lecture, source).</li>
-        <li>Le SVG est exposé comme une image (<code>role="img"</code>) avec une alternative textuelle (<code>aria-label</code>) qui donne les valeurs clés, recalculée à chaque changement de filtre.</li>
-        <li>Les valeurs exactes de chaque graphique sont disponibles dans un tableau (« Voir les valeurs du graphique »).</li>
-        <li>La couleur n'est jamais le seul repère : légendes nommées, noms des stations sur la carte, valeurs dans les infobulles et les tableaux.</li>
-        <li>Lien d'évitement, navigation au clavier, focus visible, <code>&lt;label&gt;</code> sur chaque filtre, zone <code>aria-live</code> qui annonce la mise à jour, défilement doux coupé si <code>prefers-reduced-motion</code>.</li>
-        <li>Contrastes vérifiés (≥ 4,5:1 pour le texte, couleurs des stations assombries quand elles colorent du texte) ; contrôle Lighthouse sur chaque page.</li>
+        <li>Chaque graphique possède un titre, une explication pour le lire et sa source.</li>
+        <li>Une description textuelle donne ses principaux résultats aux personnes utilisant un logiciel de lecture à voix haute. Elle est mise à jour lorsque vous changez l’année de la carte.</li>
+        <li>Le lien « Voir les chiffres du graphique » ouvre un tableau : vous pouvez y lire les valeurs sans dépendre des couleurs ni du survol à la souris.</li>
+        <li>Les menus et les tableaux sont utilisables au clavier. Le site indique l’élément sélectionné et annonce les changements de graphique aux lecteurs d’écran.</li>
+        <li>Les graphiques s’adaptent à l’écran. Si un tableau est trop large, vous pouvez le faire défiler sans faire déborder toute la page.</li>
+        <li>Un contrôle automatique avec Lighthouse a obtenu 100/100 en accessibilité sur les quatre pages. Ce résultat complète les essais sur mobile et au clavier ; il ne garantit pas, à lui seul, que tous les besoins sont couverts.</li>
       </ul>
     </section>
+
 
     <!-- 7 -->
     <section id="donnees" aria-labelledby="titre-donnees" class="mt-20 border-t-2 border-encre pt-6">
       <h2 id="titre-donnees" class="titre text-3xl font-semibold sm:text-4xl">7. Données téléchargeables</h2>
-      <p class="mt-4 leading-relaxed">
-        Fichiers préfiltrés&nbsp;: seulement les colonnes utiles, dénominateurs conservés, deux décimales. Ce sont
-        exactement les fichiers lus par les graphiques. Licence Ouverte 2.0 — citer «&nbsp;Météo-France&nbsp;».
-      </p>
+      <p class="mt-4 leading-relaxed">Vous souhaitez vérifier un chiffre ou réutiliser les résultats ? Ces fichiers contiennent seulement les mesures et résultats utiles à cette étude. Les nombres de jours, de mois ou d’années utilisés sont conservés pour comprendre sur combien d’observations repose chaque résultat.</p>
+          <p class="mt-4 leading-relaxed">Les températures sont arrondies à deux chiffres après la virgule ; dans les fichiers JSON, un zéro final peut être omis sans changer la valeur. Licence Ouverte 2.0 : citer « Météo-France » pour les températures.</p>
+      <p class="mt-3 text-sm text-graphite">CSV s’ouvre dans un tableur comme Excel ou LibreOffice. JSON permet de réutiliser les chiffres dans un programme. GeoJSON contient les contours des communes de la carte.</p>
       <ul class="mt-6 space-y-4">
         {
           fichiers.map((f) => (
@@ -322,9 +325,21 @@ const limites = [
         </li>
       </ul>
       <p class="mt-8 leading-relaxed">
-        Notebook de l'analyse&nbsp;: <a class="lien font-bold break-all" href={NOTEBOOK}>{NOTEBOOK}</a><br />
+        Carnet d’analyse complet&nbsp;: <a class="lien font-bold break-all" href={NOTEBOOK}>{NOTEBOOK}</a><br />
         Code du site&nbsp;: <a class="lien font-bold break-all" href={DEPOT}>{DEPOT}</a>
       </p>
+    </section>
+    <section id="journal-ia" aria-labelledby="titre-journal-ia" class="mt-20 border-t-2 border-encre pt-6">
+      <h2 id="titre-journal-ia" class="titre text-3xl font-semibold sm:text-4xl">8. Utilisation de l’IA et positionnement</h2>
+      <div class="reading-stack mt-6 space-y-4 leading-relaxed">
+        <p>L’organisation initiale de l’étude a été définie par notre binôme : contrôler les données, étudier chaque station, les comparer et conclure. ChatGPT et Claude ont été sollicités pour confronter la compréhension de cette démarche ; leur accord ne constitue pas une preuve de validité.</p>
+        <p>ChatGPT a aussi proposé une grande partie du code Observable, des explications, des graphiques et des brouillons de synthèse. Les demandes portaient notamment sur la sélection des stations et des dates, l’adaptation de modèles Plot, la correction d’erreurs et la vérification des consignes.</p>
+        <p>Nous avons dû corriger des confusions entre distribution et évolution, moyenne et record, TX basse et température minimale TN. Nous avons écarté des représentations peu lisibles et retenu des barres divergentes pour comparer les records.</p>
+          <p>Aucune donnée manquante n’a été remplacée par une valeur générée. La vérification des chiffres et les conclusions restent sous la responsabilité du binôme.</p>
+        <p>Pour cette adaptation du site, Codex a été utilisé pour examiner les composants existants, intégrer les représentations retenues et réécrire les textes à partir de notre retranscription. Le journal détaillé des utilisations de l’IA se trouve dans le <a class="lien" href={NOTEBOOK}>notebook</a>.</p>
+        <p>Notre angle est local : comprendre la chaleur en journée pour les habitants de Mulhouse et de ses environs, en distinguant moyennes et extrêmes de deux stations.</p>
+          <p>Aucune liste vérifiable de réutilisations consultées n’a été fournie pour cette adaptation ; cette partie devra être complétée par le binôme avec les références réellement consultées.</p>
+      </div>
     </section>
   </div>
 </Layout>

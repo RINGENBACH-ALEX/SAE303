@@ -13,13 +13,14 @@ import type { Chart } from "../lib/graphiques";
 
 interface Props {
   chart: Chart;
+  chartMobile?: Chart;
   id: string;
   numero?: number;
-  interactif?: "barres" | "extremes" | "anomalies" | "carte" | "comparaison";
+  interactif?: "barres" | "extremes" | "anomalies" | "carte" | "comparaison" | "carte-etude" | "records";
   valeur?: string;
   class?: string;
 }
-const { chart, id, numero, interactif, valeur, class: className } = Astro.props;
+const { chart, chartMobile, id, numero, interactif, valeur, class: className } = Astro.props;
 const aDesDonnees = Astro.slots.has("default");
 const aDesFiltres = Astro.slots.has("filtres");
 
@@ -34,7 +35,7 @@ const routes = {
   aria-labelledby={`${id}-titre`}
   data-graphique={interactif}
   data-valeur={valeur}
-  class:list={["border-t-4 border-encre pt-4", className]}
+  class:list={["chart-card", className]}
 >
   <p class="repere text-sapin">
     {numero !== undefined ? `Graphique ${numero}` : "Graphique"}
@@ -47,14 +48,15 @@ const routes = {
 
   {
     aDesFiltres && (
-      <div class="mt-5 flex flex-wrap items-end gap-x-6 gap-y-3 border-y border-trait py-3">
+      <div class="chart-filters">
         <slot name="filtres" />
         <p data-statut aria-live="polite" class="repere pb-2 text-graphite" />
       </div>
     )
   }
 
-  <PlotFigure id={id} label={chart.label} options={chart.options} largeurMin={chart.largeurMin} />
+  <PlotFigure id={id} label={chart.label} options={chart.options} largeurMin={chart.largeurMin} class={chartMobile ? "hidden sm:block" : undefined} />
+  {chartMobile && <PlotFigure id={`${id}-mobile`} label={chartMobile.label} options={chartMobile.options} class="sm:hidden" />}
 
   <figcaption class="mt-4 max-w-3xl space-y-1.5 border-t border-trait pt-3 text-sm leading-relaxed text-graphite">
     {chart.legende && <p><strong class="font-semibold text-encre">Lecture.</strong> <span data-legende>{chart.legende}</span></p>}
@@ -68,9 +70,9 @@ const routes = {
       <details class="group mt-3">
         <summary class="repere inline-flex cursor-pointer list-none items-center gap-2 text-sapin hover:underline [&::-webkit-details-marker]:hidden">
           <span aria-hidden="true" class="inline-block transition group-open:rotate-90">▸</span>
-          Voir les données du graphique
+          Voir les chiffres du graphique
         </summary>
-        <div class="mt-2 max-h-96 overflow-auto border border-trait bg-panneau px-3 pb-3">
+        <div class="mt-2 max-h-96 overflow-auto border border-trait bg-panneau px-3 pb-3" tabindex="0" role="region" aria-label={`Données : ${chart.titre}`}>
           <slot />
         </div>
       </details>
