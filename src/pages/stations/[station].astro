@@ -5,7 +5,7 @@ import Layout from "../../layouts/Layout.astro";
 import ChartCard from "../../components/ChartCard.astro";
 import PillNav from "../../components/PillNav.astro";
 import { stations, serieDe, reperes, quotidiennes, cleQuotidienne, deg, degSigne, entier } from "../../lib/donnees";
-import { barresAnnuelles, evolutionStation } from "../../lib/graphiques";
+import { barresAnnuelles, extremesStation } from "../../lib/graphiques";
 import { couleurStation, type Station } from "../../lib/palette";
 
 export const getStaticPaths = (() => stations.map((s) => ({ params: { station: s.slug } }))) satisfies GetStaticPaths;
@@ -70,8 +70,7 @@ const links = stations.map((s) => ({
       <p class="repere text-sapin">Vingt ans de mesures</p>
       <h2 id="titre-annees" class="titre mt-2 text-3xl font-semibold leading-tight sm:text-4xl">Vingt années de températures maximales</h2>
       <p class="mt-4 max-w-3xl text-lg leading-relaxed">
-        Les deux graphiques du notebook pour cette station : la moyenne annuelle des maximales en barres, puis son
-        évolution, sur la même échelle verticale que l'autre station.
+        Les deux graphiques du notebook pour cette station : la moyenne annuelle des maximales en barres, puis la journée la plus chaude et la plus froide de chaque année (dates au survol).
       </p>
       <ChartCard chart={{ ...barresAnnuelles(nom), route: "C" }} id={`graphique-barres-${fiche.slug}`} numero={1} interactif="barres" valeur={nom} class="mt-10">
         <table class="tableau">
@@ -100,7 +99,7 @@ const links = stations.map((s) => ({
           </tbody>
         </table>
       </ChartCard>
-      <ChartCard chart={{ ...evolutionStation(nom), route: "C" }} id={`graphique-evolution-${fiche.slug}`} numero={2} interactif="evolution" valeur={nom} class="mt-14" />
+      <ChartCard chart={{ ...extremesStation(nom), route: "C" }} id={`graphique-extremes-${fiche.slug}`} numero={2} interactif="extremes" valeur={nom} class="mt-14" />
     </section>
 
     <section aria-labelledby="titre-suite" class="mt-14 border-l-4 border-sapin bg-panneau p-6 sm:p-8">

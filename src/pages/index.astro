@@ -26,19 +26,28 @@ import {
 } from "../lib/donnees";
 import {
   barresAnnuelles,
-  evolutionStation,
+  extremesStation,
   comparaisonCourbes,
   anomaliesStations,
   choixStations,
   carteAnomalies,
   pointsAnnee,
 } from "../lib/graphiques";
+import txExtremes from "../data/tx-extremes.json";
 import { STATIONS, couleurStation, couleurTexteStation, type Station } from "../lib/palette";
 
 const [mulhouse, colmar] = stations;
 const rM = reperes("Mulhouse");
 const rC = reperes("Colmar-Meyenheim");
 const [d1, d2] = decennies;
+
+// TX extrêmes de Mulhouse (graphique 2)
+const hautesM = txExtremes.filter((d) => d.station === "Mulhouse" && d.indicateur === "TX la plus élevée");
+const recordM = hautesM.reduce((a, b) => (b.tx > a.tx ? b : a));
+const pics35M = {
+  avant: hautesM.filter((d) => d.annee <= 2012 && d.tx >= 35).length,
+  apres: hautesM.filter((d) => d.annee > 2012 && d.tx >= 35).length,
+};
 
 const temps = [
   { id: "contexte", num: "1", nom: "Contexte", titre: "Deux thermomètres, vingt ans de mesures" },
@@ -193,16 +202,17 @@ const labelClass = "repere block text-graphite";
             ({rC.min.annee}) à {deg(rC.max.txMoyenne, 2)} ({rC.max.annee}).
           </p>
           <p>
-            Les courbes montent et descendent sans cesse&nbsp;: une année fraîche suit souvent une année chaude. Mais les
-            points les plus hauts se concentrent dans la seconde moitié de la période. Changez de station&nbsp;: l'échelle
-            verticale reste la même, pour comparer sans tricher.
+            Une moyenne cache les extrêmes. Regardons donc, chaque année, la journée la plus chaude et la plus froide.
+            Le record des vingt ans à Mulhouse reste le {recordM.dates}&nbsp;: {deg(recordM.tx)}. Mais les pics de chaleur
+            se sont multipliés&nbsp;: l'année a atteint au moins 35&nbsp;°C à Mulhouse {pics35M.avant} fois entre 2003 et
+            2012, et {pics35M.apres} fois entre 2013 et 2022.
           </p>
         </div>
 
-        <ChartCard chart={evolutionStation(stationDefaut)} id="graphique-evolution" numero={2} interactif="evolution" class={`${largeur} mt-10`}>
+        <ChartCard chart={extremesStation(stationDefaut)} id="graphique-extremes" numero={2} interactif="extremes" class={`${largeur} mt-10`}>
           <div slot="filtres">
-            <label for="filtre-evolution" class={labelClass}>Station</label>
-            <select id="filtre-evolution" data-filtre class={selectClass}>
+            <label for="filtre-extremes" class={labelClass}>Station</label>
+            <select id="filtre-extremes" data-filtre class={selectClass}>
               {STATIONS.map((s) => <option selected={s === stationDefaut}>{s}</option>)}
             </select>
           </div>

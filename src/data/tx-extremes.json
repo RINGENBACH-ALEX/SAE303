@@ -1,0 +1,642 @@
+[
+ {
+  "station": "Mulhouse",
+  "annee": 2003,
+  "indicateur": "TX la plus élevée",
+  "tx": 39.4,
+  "dates": "13/08/2003",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2003,
+  "indicateur": "TX la plus basse",
+  "tx": -6.6,
+  "dates": "10/01/2003",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2004,
+  "indicateur": "TX la plus élevée",
+  "tx": 33.3,
+  "dates": "08/08/2004",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2004,
+  "indicateur": "TX la plus basse",
+  "tx": -3.8,
+  "dates": "03/01/2004",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2005,
+  "indicateur": "TX la plus élevée",
+  "tx": 34.2,
+  "dates": "27/06/2005, 28/06/2005, 28/07/2005",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2005,
+  "indicateur": "TX la plus basse",
+  "tx": -3.2,
+  "dates": "28/12/2005",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2006,
+  "indicateur": "TX la plus élevée",
+  "tx": 36,
+  "dates": "25/07/2006",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2006,
+  "indicateur": "TX la plus basse",
+  "tx": -5.4,
+  "dates": "27/01/2006",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2007,
+  "indicateur": "TX la plus élevée",
+  "tx": 34.5,
+  "dates": "15/07/2007",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2007,
+  "indicateur": "TX la plus basse",
+  "tx": -2.7,
+  "dates": "23/12/2007, 24/12/2007",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2008,
+  "indicateur": "TX la plus élevée",
+  "tx": 32.3,
+  "dates": "31/07/2008",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2008,
+  "indicateur": "TX la plus basse",
+  "tx": -0.7,
+  "dates": "02/01/2008",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2009,
+  "indicateur": "TX la plus élevée",
+  "tx": 36,
+  "dates": "20/08/2009",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2009,
+  "indicateur": "TX la plus basse",
+  "tx": -5.4,
+  "dates": "19/12/2009",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2010,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.4,
+  "dates": "14/07/2010",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2010,
+  "indicateur": "TX la plus basse",
+  "tx": -4.6,
+  "dates": "26/12/2010",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2011,
+  "indicateur": "TX la plus élevée",
+  "tx": 34.8,
+  "dates": "27/06/2011",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2011,
+  "indicateur": "TX la plus basse",
+  "tx": -2.6,
+  "dates": "04/01/2011",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2012,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.6,
+  "dates": "19/08/2012",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2012,
+  "indicateur": "TX la plus basse",
+  "tx": -8.9,
+  "dates": "07/02/2012",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2013,
+  "indicateur": "TX la plus élevée",
+  "tx": 37.3,
+  "dates": "27/07/2013",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2013,
+  "indicateur": "TX la plus basse",
+  "tx": -3,
+  "dates": "17/01/2013",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2014,
+  "indicateur": "TX la plus élevée",
+  "tx": 37.6,
+  "dates": "09/06/2014",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2014,
+  "indicateur": "TX la plus basse",
+  "tx": -2.3,
+  "dates": "29/12/2014",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2015,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.8,
+  "dates": "07/08/2015",
+  "joursMesures": 337
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2015,
+  "indicateur": "TX la plus basse",
+  "tx": 1.5,
+  "dates": "23/01/2015",
+  "joursMesures": 337
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2016,
+  "indicateur": "TX la plus élevée",
+  "tx": 35.9,
+  "dates": "27/08/2016",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2016,
+  "indicateur": "TX la plus basse",
+  "tx": -2.8,
+  "dates": "21/01/2016",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2017,
+  "indicateur": "TX la plus élevée",
+  "tx": 35.1,
+  "dates": "22/06/2017",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2017,
+  "indicateur": "TX la plus basse",
+  "tx": -5.4,
+  "dates": "25/01/2017",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2018,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.1,
+  "dates": "31/07/2018",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2018,
+  "indicateur": "TX la plus basse",
+  "tx": -4.2,
+  "dates": "27/02/2018",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2019,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.7,
+  "dates": "25/07/2019",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2019,
+  "indicateur": "TX la plus basse",
+  "tx": -1.1,
+  "dates": "21/01/2019, 24/01/2019",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2020,
+  "indicateur": "TX la plus élevée",
+  "tx": 37.6,
+  "dates": "31/07/2020",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2020,
+  "indicateur": "TX la plus basse",
+  "tx": -2.1,
+  "dates": "23/01/2020",
+  "joursMesures": 366
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2021,
+  "indicateur": "TX la plus élevée",
+  "tx": 33.2,
+  "dates": "12/08/2021",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2021,
+  "indicateur": "TX la plus basse",
+  "tx": -5.3,
+  "dates": "10/02/2021",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2022,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.7,
+  "dates": "04/08/2022",
+  "joursMesures": 365
+ },
+ {
+  "station": "Mulhouse",
+  "annee": 2022,
+  "indicateur": "TX la plus basse",
+  "tx": -4.4,
+  "dates": "17/12/2022",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2003,
+  "indicateur": "TX la plus élevée",
+  "tx": 40.9,
+  "dates": "13/08/2003",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2003,
+  "indicateur": "TX la plus basse",
+  "tx": -6.5,
+  "dates": "08/01/2003, 10/01/2003",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2004,
+  "indicateur": "TX la plus élevée",
+  "tx": 32.8,
+  "dates": "09/06/2004, 10/06/2004",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2004,
+  "indicateur": "TX la plus basse",
+  "tx": -3.6,
+  "dates": "03/01/2004",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2005,
+  "indicateur": "TX la plus élevée",
+  "tx": 35.9,
+  "dates": "24/06/2005",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2005,
+  "indicateur": "TX la plus basse",
+  "tx": -2.8,
+  "dates": "27/02/2005, 28/02/2005",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2006,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.2,
+  "dates": "20/07/2006",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2006,
+  "indicateur": "TX la plus basse",
+  "tx": -5.8,
+  "dates": "27/01/2006",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2007,
+  "indicateur": "TX la plus élevée",
+  "tx": 35.1,
+  "dates": "15/07/2007",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2007,
+  "indicateur": "TX la plus basse",
+  "tx": -4.4,
+  "dates": "24/12/2007",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2008,
+  "indicateur": "TX la plus élevée",
+  "tx": 33.9,
+  "dates": "02/07/2008",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2008,
+  "indicateur": "TX la plus basse",
+  "tx": -0.6,
+  "dates": "02/01/2008",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2009,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.1,
+  "dates": "20/08/2009",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2009,
+  "indicateur": "TX la plus basse",
+  "tx": -7.2,
+  "dates": "19/12/2009",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2010,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.3,
+  "dates": "10/07/2010",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2010,
+  "indicateur": "TX la plus basse",
+  "tx": -4.7,
+  "dates": "26/12/2010",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2011,
+  "indicateur": "TX la plus élevée",
+  "tx": 35.5,
+  "dates": "23/08/2011",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2011,
+  "indicateur": "TX la plus basse",
+  "tx": -3,
+  "dates": "03/01/2011",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2012,
+  "indicateur": "TX la plus élevée",
+  "tx": 37.9,
+  "dates": "19/08/2012",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2012,
+  "indicateur": "TX la plus basse",
+  "tx": -8.5,
+  "dates": "07/02/2012",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2013,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.7,
+  "dates": "27/07/2013",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2013,
+  "indicateur": "TX la plus basse",
+  "tx": -1.4,
+  "dates": "17/01/2013",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2014,
+  "indicateur": "TX la plus élevée",
+  "tx": 37.1,
+  "dates": "09/06/2014",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2014,
+  "indicateur": "TX la plus basse",
+  "tx": -2.6,
+  "dates": "29/12/2014",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2015,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.7,
+  "dates": "04/07/2015",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2015,
+  "indicateur": "TX la plus basse",
+  "tx": 0,
+  "dates": "01/01/2015",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2016,
+  "indicateur": "TX la plus élevée",
+  "tx": 35.7,
+  "dates": "26/08/2016",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2016,
+  "indicateur": "TX la plus basse",
+  "tx": -2.5,
+  "dates": "21/01/2016",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2017,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.3,
+  "dates": "22/06/2017",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2017,
+  "indicateur": "TX la plus basse",
+  "tx": -5,
+  "dates": "23/01/2017",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2018,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.4,
+  "dates": "04/08/2018",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2018,
+  "indicateur": "TX la plus basse",
+  "tx": -3.9,
+  "dates": "27/02/2018",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2019,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.6,
+  "dates": "30/06/2019",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2019,
+  "indicateur": "TX la plus basse",
+  "tx": -1.2,
+  "dates": "29/12/2019",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2020,
+  "indicateur": "TX la plus élevée",
+  "tx": 36.8,
+  "dates": "31/07/2020",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2020,
+  "indicateur": "TX la plus basse",
+  "tx": -1.7,
+  "dates": "23/01/2020",
+  "joursMesures": 366
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2021,
+  "indicateur": "TX la plus élevée",
+  "tx": 34.3,
+  "dates": "17/06/2021",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2021,
+  "indicateur": "TX la plus basse",
+  "tx": -5.2,
+  "dates": "10/02/2021",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2022,
+  "indicateur": "TX la plus élevée",
+  "tx": 38.3,
+  "dates": "04/08/2022",
+  "joursMesures": 365
+ },
+ {
+  "station": "Colmar-Meyenheim",
+  "annee": 2022,
+  "indicateur": "TX la plus basse",
+  "tx": -5,
+  "dates": "17/12/2022",
+  "joursMesures": 365
+ }
+]

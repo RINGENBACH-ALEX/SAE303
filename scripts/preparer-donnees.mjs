@@ -141,6 +141,29 @@ for (const s of stations) {
 }
 const quotidiennes = [...quotidien.values()].sort((a, b) => a.date.localeCompare(b.date));
 
+// TX extrêmes de chaque année (notebook : extremesMulhouse) : la plus élevée et la plus
+// basse des maximales quotidiennes, avec toutes les dates où elle a été atteinte.
+// Seuls les jours mesurés comptent (février 2015 manque à Mulhouse) ; leur nombre est gardé.
+const dateFr = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
+const extremes = stations.flatMap((s) => {
+  const cle = s.slug === "mulhouse" ? "mulhouse" : "colmar";
+  return Array.from({ length: FIN - DEBUT + 1 }, (_, i) => DEBUT + i).flatMap((annee) => {
+    const jours = quotidiennes.filter((d) => d.date.startsWith(String(annee)) && d[cle] !== null);
+    const valeurs = jours.map((d) => d[cle]);
+    return [
+      ["TX la plus élevée", Math.max(...valeurs)],
+      ["TX la plus basse", Math.min(...valeurs)],
+    ].map(([indicateur, tx]) => ({
+      station: s.station,
+      annee,
+      indicateur,
+      tx,
+      dates: jours.filter((d) => d[cle] === tx).map((d) => dateFr(d.date)).join(", "),
+      joursMesures: jours.length,
+    }));
+  });
+});
+
 // ---------------------------------------------------------------------------
 // 3. Contour du Haut-Rhin, coordonnées arrondies (≈ 100 m), suffisant à cette échelle
 // ---------------------------------------------------------------------------
@@ -177,5 +200,6 @@ ecrire(
   })),
 );
 ecrire("tx-quotidiennes.json", quotidiennes);
+ecrire("tx-extremes.json", extremes);
 ecrire("controle.json", controle);
 ecrire("haut-rhin.json", hautRhin);

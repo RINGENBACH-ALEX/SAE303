@@ -15,7 +15,7 @@ interface Props {
   chart: Chart;
   id: string;
   numero?: number;
-  interactif?: "barres" | "evolution" | "anomalies" | "carte" | "comparaison";
+  interactif?: "barres" | "extremes" | "anomalies" | "carte" | "comparaison";
   valeur?: string;
   class?: string;
 }
@@ -57,7 +57,7 @@ const routes = {
   <PlotFigure id={id} label={chart.label} options={chart.options} largeurMin={chart.largeurMin} />
 
   <figcaption class="mt-4 max-w-3xl space-y-1.5 border-t border-trait pt-3 text-sm leading-relaxed text-graphite">
-    {chart.legende && <p><strong class="font-semibold text-encre">Lecture.</strong> {chart.legende}</p>}
+    {chart.legende && <p><strong class="font-semibold text-encre">Lecture.</strong> <span data-legende>{chart.legende}</span></p>}
     <p>
       <strong class="font-semibold text-encre">Source.</strong>
       {chart.source}. <a class="lien" href={`/methode/#route-${chart.route.toLowerCase()}`}>Méthode</a>

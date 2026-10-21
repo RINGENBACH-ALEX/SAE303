@@ -43,7 +43,7 @@ const routes = [
     id: "route-b",
     lettre: "B",
     nom: "Chez le lecteur",
-    ou: "Graphique 1 (barres YlOrRd pour Mulhouse, Blues pour Colmar-Meyenheim, filtre station), graphique 2 (évolution, filtre station), graphique 4 (anomalies, filtre stations affichées), graphique 5 (carte, filtre année)",
+    ou: "Graphique 1 (barres YlOrRd pour Mulhouse, Blues pour Colmar-Meyenheim, filtre station), graphique 2 (TX extrêmes de chaque année, filtre station), graphique 4 (anomalies, filtre stations affichées), graphique 5 (carte, filtre année)",
     pourquoi:
       "Ici, oui, ça doit bouger chez le lecteur : il choisit une station pour comparer sur la même échelle, isole une courbe d'anomalies, ou cherche « son » année sur la carte (le sélecteur Inputs.select du notebook). Comme la carte GeoJSON côté client du TP7, un <select> recalcule les options et Plot redessine, sans recharger la page. Les données utiles sont petites (40 moyennes annuelles, deux stations, un contour) : elles partent avec le script, chargé seulement à l'approche des graphiques. Le build rend la valeur par défaut (Mulhouse, 2022) en repli sans JavaScript.",
   },
@@ -51,7 +51,7 @@ const routes = [
     id: "route-c",
     lettre: "C",
     nom: "Une page par valeur",
-    ou: "Les fiches station : /stations/mulhouse/ et /stations/colmar-meyenheim/, avec les graphiques 1 et 2 du notebook pour chaque station",
+    ou: "Les fiches station : /stations/mulhouse/ et /stations/colmar-meyenheim/, avec les graphiques 1 et 2 pour chaque station",
     pourquoi:
       "Deux valeurs seulement, stables, que l'on a envie de citer ou de partager : chaque station mérite une adresse propre. getStaticPaths() génère une page HTML par station au build ; pas besoin d'interaction côté lecteur.",
   },
@@ -63,6 +63,7 @@ const traitements = [
   "Moyenne annuelle des TX : chaque moyenne mensuelle est pondérée par le nombre de jours du mois, puis la somme est divisée par le nombre de jours de l'année (365 ou 366). Une année n'est calculée que si ses 12 mois sont présents (c'est le cas des 20 années).",
   "Référence propre à chaque station : moyenne de ses 20 moyennes annuelles. Anomalie = moyenne de l'année − référence. Ce n'est pas une « normale » climatologique (calculée sur 30 ans).",
   `Données quotidiennes : seules les journées renseignées aux deux stations sont comparées (${entier(joursCommuns)} jours). Les 28 jours manquants de février 2015 à Mulhouse ne sont ni remplacés ni estimés : ils sont retirés des deux côtés.`,
+  "TX extrêmes : pour chaque année, la plus haute et la plus basse des températures maximales quotidiennes de la station, avec toutes les dates où elles ont été atteintes. Seuls les jours mesurés comptent : en 2015, février manque à Mulhouse, donc sa « TX la plus basse » de 2015 sous-estime le froid de l'année.",
   "Journées à 30 °C ou plus : comptées sur les journées communes aux deux stations, pour chaque décennie ; le nombre de jours renseignés (dénominateur) est indiqué à côté.",
   "Arrondi à deux décimales au moment d'écrire les fichiers, après tous les calculs.",
 ];

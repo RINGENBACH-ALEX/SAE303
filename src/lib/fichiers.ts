@@ -2,6 +2,7 @@
 // Chaque fichier existe en JSON et en CSV, générés au build à partir de src/data :
 // ce qu'on télécharge est exactement ce que les graphiques utilisent.
 import { stations, txAnnuelles, quotidiennes, controle, hautRhin } from "./donnees";
+import txExtremes from "../data/tx-extremes.json";
 
 type Ligne = Record<string, string | number | null>;
 
@@ -20,6 +21,14 @@ export const fichiers: {
     colonnes:
       "station, annee, moisDisponibles, joursUtilises, txMoyenne (°C), reference (moyenne 2003–2022 de la station, °C), anomalie (°C)",
     lignes: txAnnuelles,
+  },
+  {
+    nom: "tx-extremes",
+    titre: "TX extrêmes de chaque année",
+    description:
+      "Pour chaque station et chaque année, la plus élevée et la plus basse des températures maximales quotidiennes, avec la ou les dates. Le nombre de jours mesurés (dénominateur) est conservé.",
+    colonnes: "station, annee, indicateur, tx (°C), dates (JJ/MM/AAAA), joursMesures",
+    lignes: txExtremes,
   },
   {
     nom: "tx-quotidiennes",

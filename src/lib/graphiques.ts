@@ -9,6 +9,7 @@ import * as Plot from "@observablehq/plot";
 import stations from "../data/stations.json";
 import txAnnuellesBrutes from "../data/tx-annuelles.json";
 import hautRhin from "../data/haut-rhin.json";
+import txExtremes from "../data/tx-extremes.json";
 import { STATIONS, couleurStation, type Station } from "./palette";
 import { deg, degSigne } from "./format";
 import type { Chart } from "./commun";
@@ -80,39 +81,65 @@ export function barresAnnuelles(station: Station): Chart {
 }
 
 // ---------------------------------------------------------------------------
-// Notebook § 2.3 et § 3.2 — evolutionTXMulhouse / evolutionTXMeyenheim
-// (filtre : la station ; même échelle verticale pour les deux)
+// Notebook — graphiqueExtremesMulhouse / graphiqueExtremesMeyenheim : la TX la plus
+// élevée et la plus basse de chaque année (filtre : la station). Comme dans le
+// notebook, l'échelle de Colmar-Meyenheim couvre les valeurs des deux stations.
 // ---------------------------------------------------------------------------
-export function evolutionStation(station: Station): Chart {
-  const data = serie(station);
-  const { min, max } = extremes(station);
-  const couleur = couleurStation[station];
-  const apres2013 = data.filter((d) => d.annee >= 2013 && d.anomalie > 0).length;
+type Extreme = (typeof txExtremes)[number];
+
+export function extremesStation(station: Station): Chart {
+  const data = txExtremes.filter((d) => d.station === station);
+  const hautes = data.filter((d) => d.indicateur === "TX la plus élevée");
+  const basses = data.filter((d) => d.indicateur === "TX la plus basse");
+  const record = hautes.reduce((a, b) => (b.tx > a.tx ? b : a));
+  const froid = basses.reduce((a, b) => (b.tx < a.tx ? b : a));
+  const incomplete = data.find((d) => d.joursMesures < 365);
   return {
-    titre: `Évolution de la moyenne annuelle des TX à ${station}, 2003–2022`,
-    sousTitre: `Les années les plus chaudes sont récentes : ${max.annee} culmine à ${deg(max.txMoyenne, 2)}, et ${apres2013} des 10 dernières années dépassent la moyenne de la station`,
-    label: `Courbe de la moyenne annuelle des températures maximales quotidiennes à ${station} entre 2003 et 2022, avec une échelle verticale commune aux deux stations étudiées. Minimum ${deg(min.txMoyenne, 2)} en ${min.annee}, maximum ${deg(max.txMoyenne, 2)} en ${max.annee}.`,
-    legende:
-      "Chaque point est une moyenne annuelle des TX ; la ligne relie les années pour faciliter la lecture, ce n'est ni une prévision ni une tendance statistique. L'axe vertical ne commence pas à zéro et il est le même pour les deux stations.",
-    source: `${SOURCE_SH}, station ${station} ${stations.find((s) => s.station === station)!.numero} — moyennes pondérées par la durée des mois`,
+    titre: `${station} : les TX extrêmes de chaque année`,
+    sousTitre: "2003–2022 · Températures en °C · Dates au survol",
+    label: `Tableau coloré de 2003 à 2022 pour ${station} : sur la ligne du haut, la température maximale quotidienne la plus élevée de chaque année ; sur celle du bas, la plus basse. Record : ${deg(record.tx)} le ${record.dates}. Journée la plus froide : ${deg(froid.tx)} le ${froid.dates}.`,
+    legende: `Pour chaque année, la plus haute et la plus basse des températures maximales quotidiennes ; couleur du bleu (froid) au rouge (chaud). Les dates s'affichent au survol.${
+      incomplete ? ` En ${incomplete.annee}, seuls ${incomplete.joursMesures} jours sont mesurés (février manquant).` : ""
+    }`,
+    source: "Météo-France, séries quotidiennes de référence SQR_TX (Q_SQR = 1), 2003–2022",
     route: "B",
-    largeurMin: 560,
+    largeurMin: 760,
     options: {
-      width: 900,
-      height: 400,
-      marginLeft: 65,
-      marginBottom: 50,
-      x: { label: "Année", ticks: 10, tickFormat: (a: number) => String(a) },
-      y: { label: "Moyenne annuelle des TX (°C)", domain: domaineTXCommun, grid: true, zero: false },
+      width: 1000,
+      height: 280,
+      marginLeft: 145,
+      marginBottom: 60,
+      x: { label: "Année", domain: annees, tickFormat: (d: number) => String(d), tickRotate: -45, tickSize: 0 },
+      y: { label: null, domain: ["TX la plus élevée", "TX la plus basse"], tickSize: 0, padding: 0.2 },
+      color: {
+        type: "linear",
+        ...(station === "Colmar-Meyenheim" && {
+          domain: [Math.min(...txExtremes.map((d) => d.tx)), Math.max(...txExtremes.map((d) => d.tx))],
+        }),
+        scheme: "RdYlBu",
+        reverse: true,
+        legend: true,
+        label: "Température maximale quotidienne (°C)",
+      },
       marks: [
-        Plot.lineY(data, { x: "annee", y: "txMoyenne", stroke: couleur, strokeWidth: 2 }),
-        Plot.dot(data, {
+        Plot.cell(data, {
           x: "annee",
-          y: "txMoyenne",
-          fill: couleur,
-          r: 4,
+          y: "indicateur",
+          fill: "tx",
+          inset: 1,
           tip: true,
-          title: (l: Annuelle) => `${l.annee} : ${l.txMoyenne.toFixed(2)} °C`,
+          title: (d: Extreme) => `${d.annee} — ${d.indicateur}
+` + `${d.tx.toFixed(1)} °C
+Date(s) : ${d.dates}`,
+        }),
+        Plot.text(data, {
+          x: "annee",
+          y: "indicateur",
+          text: (d: Extreme) => d.tx.toFixed(1),
+          fill: "#111",
+          stroke: "white",
+          strokeWidth: 2,
+          fontSize: 10,
         }),
       ],
     },

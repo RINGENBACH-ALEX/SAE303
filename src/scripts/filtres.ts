@@ -3,13 +3,13 @@
 // Chargé à la demande : Plot n'est téléchargé que lorsque le lecteur approche d'un
 // graphique filtrable. Avant cela, le rendu du build sert de repli sans JavaScript.
 import * as Plot from "@observablehq/plot";
-import { barresAnnuelles, evolutionStation, comparaisonCourbes, anomaliesStations, carteAnomalies, pointsAnnee } from "../lib/graphiques";
+import { barresAnnuelles, extremesStation, comparaisonCourbes, anomaliesStations, carteAnomalies, pointsAnnee } from "../lib/graphiques";
 import { nettoyerAria, type Chart } from "../lib/commun";
 import type { Station } from "../lib/palette";
 
 const fabriques: Record<string, (valeur: string) => Chart> = {
   barres: (v) => barresAnnuelles(v as Station),
-  evolution: (v) => evolutionStation(v as Station),
+  extremes: (v) => extremesStation(v as Station),
   anomalies: (v) => anomaliesStations(v),
   carte: (v) => carteAnomalies(Number(v)),
   comparaison: () => comparaisonCourbes(),
@@ -46,6 +46,7 @@ export function brancher(figure: HTMLElement) {
   const zone = figure.querySelector<HTMLElement>("[role=img]")!;
   const titre = figure.querySelector<HTMLElement>("[data-titre]")!;
   const sousTitre = figure.querySelector<HTMLElement>("[data-sous-titre]")!;
+  const legende = figure.querySelector<HTMLElement>("[data-legende]");
   const statut = figure.querySelector<HTMLElement>("[data-statut]");
 
   function rendre(annoncer: boolean) {
@@ -54,6 +55,7 @@ export function brancher(figure: HTMLElement) {
     zone.setAttribute("aria-label", chart.label);
     titre.textContent = chart.titre;
     sousTitre.textContent = chart.sousTitre;
+    if (legende && chart.legende) legende.textContent = chart.legende;
     if (type === "carte") remplirTableau(figure, Number(valeur()));
     if (select && statut && annoncer) statut.textContent = `Graphique mis à jour : ${select.selectedOptions[0].textContent}`;
   }
