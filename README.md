@@ -1,4 +1,4 @@
-- URL site WEB : (à compléter après le déploiement Netlify)
+- URL site WEB : [(à compléter après le déploiement Netlify)](https://lively-profiterole-997d69.netlify.app/)
 - URL Notebook Observable : https://observablehq.com/@mmi-montbeliard/sae-303-gr-06
 - Nom : Ringenbach
 - Prénom : Alex
